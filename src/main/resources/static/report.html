@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Report – Football League Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            padding: 2rem 1.5rem;
+            color: #0f172a;
+            transition: background 0.2s, color 0.2s;
+        }
+        body.dark {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        /* header & cards */
+        .header-card {
+            background: white;
+            border-radius: 2rem;
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            transition: background 0.2s;
+        }
+        body.dark .header-card,
+        body.dark .card {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+        .card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            break-inside: avoid;
+            transition: transform 0.1s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1e4a76, #0f2b4d);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 1rem 0 0.25rem;
+            color: #0f2b4d;
+        }
+        body.dark h2 {
+            color: #b9d0f0;
+        }
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            border-left: 4px solid #2c6e9e;
+            padding-left: 0.75rem;
+        }
+        .section-badge {
+            display: inline-block;
+            background: #eef2ff;
+            color: #1e4a76;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.8rem;
+            margin-bottom: 0.75rem;
+        }
+        body.dark .section-badge {
+            background: #2d3a5e;
+            color: #bbd7fb;
+        }
+        .stats-row {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .stat-pill {
+            background: #f8fafc;
+            padding: 0.5rem 1.2rem;
+            border-radius: 60px;
+            font-weight: 500;
+        }
+        body.dark .stat-pill {
+            background: #334155;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 1.5rem;
+        }
+        .chart-container {
+            max-width: 100%;
+            margin: 1rem 0;
+        }
+        canvas {
+            max-height: 280px;
+            width: 100%;
+        }
+        .likert-avg {
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 0.5rem 0 1rem;
+        }
+        .avg-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #2c6e9e;
+        }
+        .stars {
+            color: #f5b042;
+            letter-spacing: 2px;
+        }
+        .free-text-list {
+            list-style: none;
+            padding: 0;
+        }
+        .free-text-list li {
+            background: #f8fafc;
+            margin: 0.5rem 0;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+            border-left: 3px solid #2c6e9e;
+        }
+        body.dark .free-text-list li {
+            background: #334155;
+        }
+        button {
+            background: #0f2b4d;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.1s;
+        }
+        button:hover {
+            background: #1e4a76;
+        }
+        .top-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #0f2b4d;
+            border-radius: 3rem;
+            width: 44px;
+            height: 44px;
+            font-size: 1.3rem;
+            opacity: 0;
+            transition: 0.2s;
+            z-index: 100;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+        }
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top-color: #2c6e9e;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 700px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            body { padding: 1rem; }
+        }
+        hr {
+            margin: 1rem 0;
+            border-color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="top-controls">
+        <button id="darkModeToggle">🌓 Dark mode</button>
+        <button id="exportCSV">📎 Export CSV</button>
+    </div>
+    <div class="header-card">
+        <h1>📊 Survey Report – Team Manager Feedback</h1>
+        <p>Football League Management System · Pitch quality & digital transformation</p>
+        <div id="summaryStats" class="stats-row"></div>
+    </div>
+    <div id="report">
+        <div class="loading"><div class="spinner"></div> Loading report...</div>
+    </div>
+</div>
+<button class="back-to-top" id="backToTopBtn">↑</button>
+
+<script>
+    const SURVEY_ID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+
+    // Safely get question ID from any field name
+    function getQuestionId(q) {
+        return q.questionId || q.id || q.question_id || `q-${Math.random()}`;
+    }
+
+    function renderStars(avg) {
+        const full = Math.floor(avg);
+        const half = avg % 1 >= 0.5;
+        let stars = '★'.repeat(full);
+        if (half) stars += '½';
+        stars += '☆'.repeat(5 - full - (half ? 1 : 0));
+        return stars;
+    }
+
+    function getSectionFromNumber(text) {
+        const match = text?.match(/^(\d+)\./);
+        if (!match) return null;
+        const num = parseInt(match[1]);
+        if (num >= 1 && num <= 5) return 'A';
+        if (num >= 6 && num <= 9) return 'B';
+        if (num >= 10 && num <= 13) return 'C';
+        if (num >= 14 && num <= 16) return 'D';
+        if (num >= 17 && num <= 19) return 'E';
+        if (num >= 20 && num <= 23) return 'F';
+        if (num >= 24 && num <= 28) return 'G';
+        return null;
+    }
+
+    let reportData = null;
+
+    async function loadReport() {
+        const container = document.getElementById('report');
+        container.innerHTML = '<div class="loading"><div class="spinner"></div> Loading report...</div>';
+        try {
+            const res = await fetch(`/api/survey/report/${SURVEY_ID}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            reportData = data;
+            renderReport(data);
+        } catch (err) {
+            container.innerHTML = `<div class="card"><p style="color:#ef4444">⚠️ Error: ${err.message}<br>Make sure backend is running and survey ID is correct.</p></div>`;
+        }
+    }
+
+    function renderReport(data) {
+        const container = document.getElementById('report');
+        const summaryDiv = document.getElementById('summaryStats');
+        summaryDiv.innerHTML = `
+            <div class="stat-pill">📋 Total responses: <strong>${data.totalResponses || 0}</strong></div>
+            <div class="stat-pill">📅 Survey: ${data.surveyTitle || 'Team Manager Survey'}</div>
+        `;
+
+        const questions = data.questions || [];
+        const sections = {};
+        questions.forEach(q => {
+            const section = getSectionFromNumber(q.questionText) || 'Other';
+            if (!sections[section]) sections[section] = [];
+            sections[section].push(q);
+        });
+
+        const grid = document.createElement('div');
+        grid.className = 'grid-2';
+
+        for (const [section, qs] of Object.entries(sections)) {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.style.breakInside = 'avoid';
+            sectionDiv.innerHTML = `<div class="section-badge">Section ${section}</div>`;
+            for (const q of qs) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const safeText = escapeHtml(q.questionText || 'Untitled question');
+                card.innerHTML = `<h3>${safeText}</h3>`;
+
+                if (q.questionType === 'likert') {
+                    if (q.averageLikert != null) {
+                        const avg = q.averageLikert;
+                        card.innerHTML += `
+                            <div class="likert-avg">
+                                <span class="avg-value">${avg.toFixed(1)}</span>
+                                <span class="stars">${renderStars(avg)}</span>
+                                <span style="font-size:0.85rem;">/ 5</span>
+                            </div>
+                        `;
+                    }
+                    if (q.optionCounts && Object.keys(q.optionCounts).length) {
+                        const canvasId = `likert-${getQuestionId(q).replace(/[^a-z0-9]/gi, '')}`;
+                        card.innerHTML += `<div class="chart-container"><canvas id="${canvasId}"></canvas></div>`;
+                        // Append to avoid innerHTML overwriting canvas
+                        card.appendChild(card.querySelector('.chart-container'));
+                        setTimeout(() => {
+                            const ctx = document.getElementById(canvasId)?.getContext('2d');
+                            if (ctx) {
+                                new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: Object.keys(q.optionCounts),
+                                        datasets: [{ label: 'Responses', data: Object.values(q.optionCounts), backgroundColor: '#3b82f6', borderRadius: 8 }]
+                                    }
+                                });
+                            }
+                        }, 50);
+                    } else {
+                        card.innerHTML += '<p class="text-muted">No Likert data yet.</p>';
+                    }
+                }
+                else if (q.questionType === 'radio' || q.questionType === 'select') {
+                    if (q.optionCounts && Object.keys(q.optionCounts).length) {
+                        const canvasId = `choice-${getQuestionId(q).replace(/[^a-z0-9]/gi, '')}`;
+                        card.innerHTML += `<div class="chart-container"><canvas id="${canvasId}"></canvas></div>`;
+                        setTimeout(() => {
+                            const ctx = document.getElementById(canvasId)?.getContext('2d');
+                            if (ctx) {
+                                new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: Object.keys(q.optionCounts),
+                                        datasets: [{ label: 'Selections', data: Object.values(q.optionCounts), backgroundColor: '#10b981', borderRadius: 8 }]
+                                    }
+                                });
+                            }
+                        }, 50);
+                    } else {
+                        card.innerHTML += '<p>No responses yet.</p>';
+                    }
+                }
+                else if (q.questionType === 'checkbox') {
+                    if (q.optionCounts && Object.keys(q.optionCounts).length) {
+                        const canvasId = `check-${getQuestionId(q).replace(/[^a-z0-9]/gi, '')}`;
+                        card.innerHTML += `<div class="chart-container"><canvas id="${canvasId}"></canvas></div>`;
+                        setTimeout(() => {
+                            const ctx = document.getElementById(canvasId)?.getContext('2d');
+                            if (ctx) {
+                                new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: Object.keys(q.optionCounts),
+                                        datasets: [{ label: 'Times selected', data: Object.values(q.optionCounts), backgroundColor: '#f59e0b', borderRadius: 8 }]
+                                    }
+                                });
+                            }
+                        }, 50);
+                    } else {
+                        card.innerHTML += '<p>No checkbox selections yet.</p>';
+                    }
+                }
+                else if (q.questionType === 'text') {
+                    const answers = q.freeTextAnswers || [];
+                    if (answers.length) {
+                        const list = document.createElement('ul');
+                        list.className = 'free-text-list';
+                        answers.slice(0, 15).forEach(t => {
+                            const li = document.createElement('li');
+                            li.textContent = t;
+                            list.appendChild(li);
+                        });
+                        if (answers.length > 15) {
+                            const more = document.createElement('li');
+                            more.textContent = `… and ${answers.length - 15} more responses.`;
+                            more.style.fontStyle = 'italic';
+                            list.appendChild(more);
+                        }
+                        card.appendChild(list);
+                    } else {
+                        card.innerHTML += '<p>No free‑text answers submitted yet.</p>';
+                    }
+                }
+                else {
+                    card.innerHTML += '<p class="text-muted">No data available for this question type.</p>';
+                }
+                sectionDiv.appendChild(card);
+            }
+            grid.appendChild(sectionDiv);
+        }
+        container.innerHTML = '';
+        container.appendChild(grid);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function exportToCSV() {
+        if (!reportData) return alert('No data loaded yet.');
+        let csvRows = [['Question', 'Type', 'Summary']];
+        (reportData.questions || []).forEach(q => {
+            let summary = '';
+            if (q.questionType === 'likert' && q.averageLikert != null) summary = `Average: ${q.averageLikert.toFixed(2)}/5`;
+            else if (q.optionCounts) summary = Object.entries(q.optionCounts).map(([k,v]) => `${k}:${v}`).join('; ');
+            else if (q.freeTextAnswers) summary = q.freeTextAnswers.join(' | ').substring(0, 200);
+            csvRows.push([`"${(q.questionText || '').replace(/"/g, '""')}"`, q.questionType, `"${summary.replace(/"/g, '""')}"`]);
+        });
+        const csvContent = csvRows.map(row => row.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `survey_report_${SURVEY_ID}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // Dark mode toggle
+    const darkToggle = document.getElementById('darkModeToggle');
+    if (darkToggle) {
+        darkToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+        });
+    }
+    if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+
+    // Back to top button
+    const backBtn = document.getElementById('backToTopBtn');
+    if (backBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) backBtn.classList.add('visible');
+            else backBtn.classList.remove('visible');
+        });
+        backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    }
+
+    const exportBtn = document.getElementById('exportCSV');
+    if (exportBtn) exportBtn.addEventListener('click', exportToCSV);
+
+    loadReport();
+</script>
+</body>
+</html>

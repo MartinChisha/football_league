@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Team Manager Survey – Football League Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #eef2ff 0%, #e0e7f0 100%);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            padding: 2rem 1rem;
+            color: #0a1c2f;
+        }
+
+        /* Container with glassmorphism effect */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(0px);
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        /* Header with subtle pattern */
+        .header {
+            background: linear-gradient(135deg, #0a2b44 0%, #0f3b5c 100%);
+            color: white;
+            padding: 2rem 2rem 1.8rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::after {
+            content: "⚽";
+            font-size: 8rem;
+            opacity: 0.08;
+            position: absolute;
+            bottom: -1rem;
+            right: 1rem;
+            pointer-events: none;
+        }
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.6rem;
+        }
+        .header p {
+            opacity: 0.85;
+            font-size: 1rem;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            padding: 0 2rem;
+            background: white;
+            border-bottom: 1px solid #e9edf2;
+        }
+        .progress-track {
+            background: #e2e8f0;
+            border-radius: 100px;
+            height: 6px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #2c6e9e, #1e4b6e);
+            width: 0%;
+            height: 100%;
+            border-radius: 100px;
+            transition: width 0.3s ease;
+        }
+
+        .survey-body {
+            padding: 2rem 2rem 1.5rem;
+        }
+
+        /* Section cards */
+        .section {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem 1.8rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.2s, transform 0.2s;
+            border: 1px solid #edf2f7;
+        }
+        .section:hover {
+            box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.12);
+            border-color: #dce5ef;
+        }
+        .section-title {
+            font-size: 1.65rem;
+            font-weight: 700;
+            background: linear-gradient(120deg, #1e4a76, #0f2b4d);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 1.25rem;
+            display: inline-block;
+            letter-spacing: -0.3px;
+            border-left: 5px solid #2c6e9e;
+            padding-left: 1rem;
+        }
+
+        /* Questions */
+        .question {
+            margin-bottom: 2rem;
+            transition: all 0.2s;
+        }
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            font-size: 1.05rem;
+            color: #1a344d;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        /* Custom radio & checkbox groups */
+        .radio-group, .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.25rem;
+        }
+        .radio-group label, .checkbox-group label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8fafd;
+            padding: 0.55rem 1.1rem;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+        .radio-group label:hover, .checkbox-group label:hover {
+            background: #eef3fc;
+            border-color: #b9cfec;
+            transform: translateY(-1px);
+        }
+        input[type="radio"], input[type="checkbox"] {
+            accent-color: #1e5a8a;
+            width: 1.1rem;
+            height: 1.1rem;
+            margin: 0;
+        }
+
+        /* Likert scale redesign */
+        .likert {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            background: #f9fbfe;
+            padding: 1rem;
+            border-radius: 28px;
+            justify-content: space-between;
+            border: 1px solid #e9edf2;
+        }
+        .likert label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.75rem;
+            gap: 0.4rem;
+            text-align: center;
+            min-width: 58px;
+            background: white;
+            padding: 0.5rem 0.3rem;
+            border-radius: 24px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid #eef2f6;
+        }
+        .likert label:hover {
+            background: #eaf2fb;
+            border-color: #bdd4ec;
+            transform: scale(1.02);
+        }
+        .likert input {
+            margin: 0;
+            transform: scale(1.1);
+        }
+
+        /* Text inputs, selects, textarea */
+        input[type="text"], input[type="email"], input[type="number"], select, textarea {
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            border: 1px solid #cfdfed;
+            background: white;
+            width: 100%;
+            max-width: 480px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2c6e9e;
+            box-shadow: 0 0 0 3px rgba(44, 110, 158, 0.15);
+        }
+
+        /* Submit button + loading state */
+        .btn-submit {
+            background: linear-gradient(100deg, #134b73, #0f3b5c);
+            color: white;
+            border: none;
+            padding: 0.9rem 2rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border-radius: 60px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.25s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        .btn-submit:hover {
+            background: linear-gradient(100deg, #1a5f8b, #134b73);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.2);
+        }
+        .btn-submit:active {
+            transform: translateY(1px);
+        }
+        .btn-submit.loading {
+            background: #8ba3b9;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* email row */
+        .email-row {
+            background: #fafcff;
+            padding: 0.8rem 1.2rem;
+            border-radius: 28px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2edf7;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+        }
+        .email-row label {
+            font-weight: 600;
+            color: #1e4a76;
+        }
+        .email-row input {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        /* footer */
+        .footer {
+            background: #f1f6fc;
+            padding: 1.2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #4b5e77;
+            border-top: 1px solid #e2edf7;
+        }
+
+        /* back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #0f2b4d;
+            color: white;
+            border: none;
+            border-radius: 60px;
+            width: 44px;
+            height: 44px;
+            font-size: 1.4rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+        }
+        .back-to-top:hover {
+            background: #1e5a8a;
+            transform: scale(1.05);
+        }
+
+        /* responsive */
+        @media (max-width: 700px) {
+            .survey-body { padding: 1.2rem; }
+            .section { padding: 1.2rem; }
+            .likert label { min-width: 45px; font-size: 0.7rem; }
+            .radio-group label, .checkbox-group label { padding: 0.4rem 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>⚽ Team Manager Survey – Football League Management System</h1>
+        <p>Help us build a smarter, centralised platform for Zambian football. All responses are anonymous.</p>
+    </div>
+    <div class="progress-container">
+        <div class="progress-track">
+            <div class="progress-fill" id="surveyProgress"></div>
+        </div>
+    </div>
+    <div class="survey-body">
+        <form id="managerSurvey">
+            <input type="hidden" name="surveyId" value="a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11">
+            <input type="hidden" name="respondentType" value="team_manager">
+            <div class="email-row">
+                <label>📧 Email (optional):</label>
+                <input type="email" name="respondentEmail" placeholder="your@email.com">
+            </div>
+
+            <!-- SECTION A (exact content, only class wrappers unchanged) -->
+            <div class="section"><div class="section-title">A. About you & your team</div>
+                <div class="question" data-qid="a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d" data-type="select">
+                    <div class="question-text">1. Current role:</div>
+                    <select class="answer-select">
+                        <option value="">Select...</option>
+                        <option value="a0000000-0000-0000-0001-000000000001">Head coach / Team manager</option>
+                        <option value="a0000000-0000-0000-0001-000000000002">Assistant manager</option>
+                        <option value="a0000000-0000-0000-0001-000000000003">Club administrator</option>
+                        <option value="a0000000-0000-0000-0001-000000000004">Technical director</option>
+                        <option value="a0000000-0000-0000-0001-000000000005">Other</option>
+                    </select>
+                </div>
+                <div class="question" data-qid="b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e" data-type="text">
+                    <div class="question-text">2. League / division you compete in:</div>
+                    <input type="text" class="answer-text">
+                </div>
+                <div class="question" data-qid="c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f" data-type="select">
+                    <div class="question-text">3. Years of experience as manager:</div>
+                    <select class="answer-select">
+                        <option value="">Select...</option>
+                        <option value="a0000000-0000-0000-0003-000000000001">Less than 1 year</option>
+                        <option value="a0000000-0000-0000-0003-000000000002">1–3 years</option>
+                        <option value="a0000000-0000-0000-0003-000000000003">4–7 years</option>
+                        <option value="a0000000-0000-0000-0003-000000000004">8+ years</option>
+                    </select>
+                </div>
+                <div class="question" data-qid="d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a" data-type="number">
+                    <div class="question-text">4. Number of players in your senior squad:</div>
+                    <input type="number" class="answer-number">
+                </div>
+                <div class="question" data-qid="e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b" data-type="radio">
+                    <div class="question-text">5. Does your club have a formal youth / academy structure?</div>
+                    <div class="radio-group">
+                        <label><input type="radio" name="q5" value="a0000000-0000-0000-0005-000000000001"> Yes</label>
+                        <label><input type="radio" name="q5" value="a0000000-0000-0000-0005-000000000002"> No</label>
+                        <label><input type="radio" name="q5" value="a0000000-0000-0000-0005-000000000003"> In planning</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION B -->
+            <div class="section"><div class="section-title">B. Current pain points & manual work</div>
+                <div class="question" data-qid="f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c" data-type="select">
+                    <div class="question-text">6. How many hours per week do you currently spend on administrative tasks?</div>
+                    <select class="answer-select">
+                        <option value="a0000000-0000-0000-0006-000000000001">Less than 2 hours</option>
+                        <option value="a0000000-0000-0000-0006-000000000002">2–5 hours</option>
+                        <option value="a0000000-0000-0000-0006-000000000003">6–10 hours</option>
+                        <option value="a0000000-0000-0000-0006-000000000004">11–15 hours</option>
+                        <option value="a0000000-0000-0000-0006-000000000005">More than 15 hours</option>
+                    </select>
+                </div>
+                <div class="question" data-qid="a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d" data-type="likert"><div class="question-text">7. Rate the difficulty of managing player rosters & match squads with your current method:</div><div class="likert"><label><input type="radio" name="q7" value="1"> 1 – Very easy</label><label><input type="radio" name="q7" value="2"> 2</label><label><input type="radio" name="q7" value="3"> 3 – Neutral</label><label><input type="radio" name="q7" value="4"> 4</label><label><input type="radio" name="q7" value="5"> 5 – Very difficult</label></div></div>
+                <div class="question" data-qid="b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e" data-type="likert"><div class="question-text">8. How often do communication delays with referees affect match preparation?</div><div class="likert"><label><input type="radio" name="q8" value="1"> 1 – Never</label><label><input type="radio" name="q8" value="2"> 2</label><label><input type="radio" name="q8" value="3"> 3 – Sometimes</label><label><input type="radio" name="q8" value="4"> 4</label><label><input type="radio" name="q8" value="5"> 5 – Always</label></div></div>
+                <div class="question" data-qid="c9d0e1f2-a3b4-4c5d-6e7f-8a9b0c1d2e3f" data-type="likert"><div class="question-text">9. Rate your satisfaction with the centralisation of league decisions:</div><div class="likert"><label><input type="radio" name="q9" value="1"> 1 – Very unsatisfied</label><label><input type="radio" name="q9" value="2"> 2</label><label><input type="radio" name="q9" value="3"> 3 – Neutral</label><label><input type="radio" name="q9" value="4"> 4</label><label><input type="radio" name="q9" value="5"> 5 – Very satisfied</label></div></div>
+            </div>
+
+            <!-- SECTION C -->
+            <div class="section"><div class="section-title">C. Team & roster management tools</div>
+                <div class="question" data-qid="d0e1f2a3-b4c5-4d6e-7f8a-9b0c1d2e3f4a" data-type="likert"><div class="question-text">10. How important is a digital squad registration system with injury tracking?</div><div class="likert"><label><input type="radio" name="q10" value="1"> 1 – Not important</label><label><input type="radio" name="q10" value="2"> 2</label><label><input type="radio" name="q10" value="3"> 3 – Moderate</label><label><input type="radio" name="q10" value="4"> 4</label><label><input type="radio" name="q10" value="5"> 5 – Very important</label></div></div>
+                <div class="question" data-qid="e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b" data-type="likert"><div class="question-text">11. Value of automated match sheet generation & line‑up submission to league authorities?</div><div class="likert"><label><input type="radio" name="q11" value="1"> 1 – No value</label><label><input type="radio" name="q11" value="2"> 2</label><label><input type="radio" name="q11" value="3"> 3 – Some value</label><label><input type="radio" name="q11" value="4"> 4</label><label><input type="radio" name="q11" value="5"> 5 – Essential</label></div></div>
+                <div class="question" data-qid="f2a3b4c5-d6e7-4f8a-9b0c-1d2e3f4a5b6c" data-type="radio"><div class="question-text">12. Would you use a mobile app to manage call‑ups, track player availability, and share tactics?</div><div class="radio-group"><label><input type="radio" name="q12" value="a0000000-0000-0000-0012-000000000001"> Definitely yes</label><label><input type="radio" name="q12" value="a0000000-0000-0000-0012-000000000002"> Probably yes</label><label><input type="radio" name="q12" value="a0000000-0000-0000-0012-000000000003"> Not sure</label><label><input type="radio" name="q12" value="a0000000-0000-0000-0012-000000000004"> Probably not</label><label><input type="radio" name="q12" value="a0000000-0000-0000-0012-000000000005"> Definitely not</label></div></div>
+                <div class="question" data-qid="a3b4c5d6-e7f8-4a9b-0c1d-2e3f4a5b6c7d" data-type="checkbox"><div class="question-text">13. Select the roster management features you would use most (choose up to 3):</div><div class="checkbox-group"><label><input type="checkbox" name="q13" value="a0000000-0000-0000-0013-000000000001"> Contract expiry reminders</label><label><input type="checkbox" name="q13" value="a0000000-0000-0000-0013-000000000002"> Medical / injury dashboard</label><label><input type="checkbox" name="q13" value="a0000000-0000-0000-0013-000000000003"> Player performance stats</label><label><input type="checkbox" name="q13" value="a0000000-0000-0000-0013-000000000004"> Loan & transfer tracking</label><label><input type="checkbox" name="q13" value="a0000000-0000-0000-0013-000000000005"> Training attendance log</label></div></div>
+            </div>
+
+            <!-- SECTION D -->
+            <div class="section"><div class="section-title">D. Referee bodies & communication</div>
+                <div class="question" data-qid="b4c5d6e7-f8a9-4b0c-1d2e-3f4a5b6c7d8e" data-type="likert"><div class="question-text">14. How often do you experience difficulties contacting referees or referee associations before matches?</div><div class="likert"><label><input type="radio" name="q14" value="1"> 1 – Never</label><label><input type="radio" name="q14" value="2"> 2</label><label><input type="radio" name="q14" value="3"> 3 – Sometimes</label><label><input type="radio" name="q14" value="4"> 4</label><label><input type="radio" name="q14" value="5"> 5 – Always</label></div></div>
+                <div class="question" data-qid="c5d6e7f8-a9b0-4c1d-2e3f-4a5b6c7d8e9f" data-type="radio"><div class="question-text">15. Would a unified dashboard to request referees, receive confirmations, and submit match reports be beneficial?</div><div class="radio-group"><label><input type="radio" name="q15" value="a0000000-0000-0000-0015-000000000001"> Very beneficial</label><label><input type="radio" name="q15" value="a0000000-0000-0000-0015-000000000002"> Moderately beneficial</label><label><input type="radio" name="q15" value="a0000000-0000-0000-0015-000000000003"> Slightly beneficial</label><label><input type="radio" name="q15" value="a0000000-0000-0000-0015-000000000004"> Not beneficial</label></div></div>
+                <div class="question" data-qid="d6e7f8a9-b0c1-4d2e-3f4a-5b6c7d8e9f0a" data-type="likert"><div class="question-text">16. Rate the importance of having referee performance ratings & feedback integrated into the system.</div><div class="likert"><label><input type="radio" name="q16" value="1"> 1 – Low</label><label><input type="radio" name="q16" value="2"> 2</label><label><input type="radio" name="q16" value="3"> 3 – Medium</label><label><input type="radio" name="q16" value="4"> 4</label><label><input type="radio" name="q16" value="5"> 5 – High</label></div></div>
+            </div>
+
+            <!-- SECTION E -->
+            <div class="section"><div class="section-title">E. Centralised decision‑making & transparency</div>
+                <div class="question" data-qid="e7f8a9b0-c1d2-4e3f-4a5b-6c7d8e9f0a1b" data-type="likert"><div class="question-text">17. How satisfied are you with the current speed of disciplinary decisions (suspensions, fines) from the league?</div><div class="likert"><label><input type="radio" name="q17" value="1"> 1 – Very slow</label><label><input type="radio" name="q17" value="2"> 2</label><label><input type="radio" name="q17" value="3"> 3 – Acceptable</label><label><input type="radio" name="q17" value="4"> 4</label><label><input type="radio" name="q17" value="5"> 5 – Very fast</label></div></div>
+                <div class="question" data-qid="f8a9b0c1-d2e3-4f4a-5b6c-7d8e9f0a1b2c" data-type="radio"><div class="question-text">18. Would a central digital registry for player transfers, loans, and eligibility reduce disputes?</div><div class="radio-group"><label><input type="radio" name="q18" value="a0000000-0000-0000-0018-000000000001"> Strongly agree</label><label><input type="radio" name="q18" value="a0000000-0000-0000-0018-000000000002"> Agree</label><label><input type="radio" name="q18" value="a0000000-0000-0000-0018-000000000003"> Neutral</label><label><input type="radio" name="q18" value="a0000000-0000-0000-0018-000000000004"> Disagree</label><label><input type="radio" name="q18" value="a0000000-0000-0000-0018-000000000005"> Strongly disagree</label></div></div>
+                <div class="question" data-qid="a9b0c1d2-e3f4-4a5b-6c7d-8e9f0a1b2c3d" data-type="likert"><div class="question-text">19. How useful is real‑time access to league standings, fixture changes, and match official appointments?</div><div class="likert"><label><input type="radio" name="q19" value="1"> 1 – Not useful</label><label><input type="radio" name="q19" value="2"> 2</label><label><input type="radio" name="q19" value="3"> 3 – Neutral</label><label><input type="radio" name="q19" value="4"> 4</label><label><input type="radio" name="q19" value="5"> 5 – Extremely useful</label></div></div>
+            </div>
+
+            <!-- SECTION F -->
+            <div class="section"><div class="section-title">F. Willingness to adopt & final thoughts</div>
+                <div class="question" data-qid="b0c1d2e3-f4a5-4b6c-7d8e-9f0a1b2c3d4e" data-type="likert"><div class="question-text">20. How likely would your club adopt a fully integrated league management system?</div><div class="likert"><label><input type="radio" name="q20" value="1"> 1 – Very unlikely</label><label><input type="radio" name="q20" value="2"> 2</label><label><input type="radio" name="q20" value="3"> 3 – Neutral</label><label><input type="radio" name="q20" value="4"> 4</label><label><input type="radio" name="q20" value="5"> 5 – Very likely</label></div></div>
+                <div class="question" data-qid="c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f" data-type="select"><div class="question-text">21. What monthly subscription fee (per club) would be reasonable for such a platform?</div><select class="answer-select"><option value="a0000000-0000-0000-0021-000000000001">Less than 500 ZMW</option><option value="a0000000-0000-0000-0021-000000000002">500 – 1,000 ZMW</option><option value="a0000000-0000-0000-0021-000000000003">1,000 – 2,500 ZMW</option><option value="a0000000-0000-0000-0021-000000000004">2,500 – 5,000 ZMW</option><option value="a0000000-0000-0000-0021-000000000005">More than 5,000 ZMW</option></select></div>
+                <div class="question" data-qid="d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a" data-type="text"><div class="question-text">22. Which additional feature would most improve your daily work?</div><textarea class="answer-textarea" rows="3"></textarea></div>
+                <div class="question" data-qid="e3f4a5b6-c7d8-4e9f-0a1b-2c3d4e5f6a7b" data-type="text"><div class="question-text">23. Any other comments or suggestions for the football management ecosystem in Zambia?</div><textarea class="answer-textarea" rows="3"></textarea></div>
+            </div>
+
+            <!-- SECTION G -->
+            <div class="section"><div class="section-title">🏟️ G. Pitch quality & grounds</div>
+                <div class="question" data-qid="f4e5d6c7-b8a9-4f2e-8d1c-3a4b5c6d7e8f" data-type="likert"><div class="question-text">24. How would you rate the current quality of your home pitch?</div><div class="likert"><label><input type="radio" name="q24" value="1"> 1 – Very poor</label><label><input type="radio" name="q24" value="2"> 2</label><label><input type="radio" name="q24" value="3"> 3 – Average</label><label><input type="radio" name="q24" value="4"> 4</label><label><input type="radio" name="q24" value="5"> 5 – Excellent</label></div></div>
+                <div class="question" data-qid="a5b6c7d8-e9f0-4a1b-8c2d-3e4f5a6b7c8d" data-type="likert"><div class="question-text">25. How often does pitch condition negatively affect player performance or increase injury risk?</div><div class="likert"><label><input type="radio" name="q25" value="1"> 1 – Never</label><label><input type="radio" name="q25" value="2"> 2</label><label><input type="radio" name="q25" value="3"> 3 – Sometimes</label><label><input type="radio" name="q25" value="4"> 4</label><label><input type="radio" name="q25" value="5"> 5 – Always</label></div></div>
+                <div class="question" data-qid="b6c7d8e9-f0a1-4b2c-8d3e-4f5a6b7c8d9e" data-type="radio"><div class="question-text">26. Would your club be willing to invest in pitch improvements if a shared funding model (league + clubs) were available?</div><div class="radio-group"><label><input type="radio" name="q26" value="a6b7c8d9-e0f1-4a2b-8c3d-4e5f6a7b8c9d"> Yes</label><label><input type="radio" name="q26" value="a7b8c9d0-e1f2-4a3b-8c4d-5e6f7a8b9c0d"> No</label><label><input type="radio" name="q26" value="a8b9c0d1-e2f3-4a4b-8c5d-6e7f8a9b0c1d"> Maybe / need more info</label></div></div>
+                <div class="question" data-qid="c7d8e9f0-a1b2-4c3d-8e4f-5a6b7c8d9e0f" data-type="checkbox"><div class="question-text">27. Which specific ground improvements are most needed at your club? (select all that apply)</div><div class="checkbox-group"><label><input type="checkbox" name="q27" value="a9b0c1d2-e3f4-4a5b-8c6d-7e8f9a0b1c2d"> Drainage system</label><label><input type="checkbox" name="q27" value="a0b1c2d3-e4f5-4a6b-8c7d-8e9f0a1b2c3d"> Grass quality / re‑turfing</label><label><input type="checkbox" name="q27" value="a1b2c3d4-e5f6-4a7b-8c8d-9e0f1a2b3c4d"> Irrigation / watering system</label><label><input type="checkbox" name="q27" value="a2b3c4d5-e6f7-4a8b-8c9d-0e1f2a3b4c5d"> Pitch levelling / resurfacing</label><label><input type="checkbox" name="q27" value="a3b4c5d6-e7f8-4a9b-8c0d-1e2f3a4b5c6d"> Better goalposts / nets</label><label><input type="checkbox" name="q27" value="a4b5c6d7-e8f9-4a0b-8c1d-2e3f4a5b6c7d"> Floodlights (if night matches)</label></div></div>
+                <div class="question" data-qid="d8e9f0a1-b2c3-4d4e-8f5a-6b7c8d9e0f1a" data-type="text"><div class="question-text">28. Any additional comments regarding pitch quality, maintenance, or investment needs?</div><textarea class="answer-textarea" rows="3"></textarea></div>
+            </div>
+
+            <button type="button" class="btn-submit" id="submitSurvey">Submit Survey</button>
+        </form>
+    </div>
+    <div class="footer">Powered by BackSpaceStudios / TINTIN solutions</div>
+</div>
+<button class="back-to-top" id="backToTopBtn" aria-label="Back to top">↑</button>
+
+<script>
+    // PROGRESS BAR: update as user fills any radio/checkbox/select/text
+    function updateProgress() {
+        const questions = document.querySelectorAll('.question');
+        let answered = 0;
+        questions.forEach(q => {
+            const type = q.getAttribute('data-type');
+            let isAnswered = false;
+            if (type === 'select') {
+                const sel = q.querySelector('.answer-select');
+                if (sel && sel.value && sel.value !== '') isAnswered = true;
+            } else if (type === 'text') {
+                const inp = q.querySelector('.answer-text');
+                if (inp && inp.value.trim() !== '') isAnswered = true;
+                const ta = q.querySelector('.answer-textarea');
+                if (ta && ta.value.trim() !== '') isAnswered = true;
+            } else if (type === 'number') {
+                const num = q.querySelector('.answer-number');
+                if (num && num.value !== '') isAnswered = true;
+            } else if (type === 'radio') {
+                if (q.querySelector('input[type="radio"]:checked')) isAnswered = true;
+            } else if (type === 'likert') {
+                if (q.querySelector('input[type="radio"]:checked')) isAnswered = true;
+            } else if (type === 'checkbox') {
+                if (q.querySelectorAll('input[type="checkbox"]:checked').length > 0) isAnswered = true;
+            }
+            if (isAnswered) answered++;
+        });
+        const percent = (answered / questions.length) * 100;
+        const fill = document.getElementById('surveyProgress');
+        if (fill) fill.style.width = percent + '%';
+    }
+
+    // Attach listeners to all inputs for progress
+    document.querySelectorAll('.question input, .question select, .question textarea').forEach(el => {
+        el.addEventListener('change', updateProgress);
+        el.addEventListener('input', updateProgress);
+    });
+    updateProgress();
+
+    // Back to top button visibility & scroll
+    const backBtn = document.getElementById('backToTopBtn');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 400) backBtn.classList.add('visible');
+        else backBtn.classList.remove('visible');
+    });
+    backBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // SUBMIT LOGIC (unchanged except loading spinner)
+    const submitBtn = document.getElementById('submitSurvey');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.addEventListener('click', async function() {
+        const surveyId = document.querySelector('input[name="surveyId"]').value;
+        const respondentEmail = document.querySelector('input[name="respondentEmail"]').value;
+        const respondentType = document.querySelector('input[name="respondentType"]').value;
+        const answers = [];
+
+        document.querySelectorAll('.question').forEach(qDiv => {
+            const qid = qDiv.getAttribute('data-qid');
+            const type = qDiv.getAttribute('data-type');
+            if (!qid) return;
+
+            let answerObj = { questionId: qid };
+
+            if (type === 'select') {
+                const selectEl = qDiv.querySelector('.answer-select');
+                if (selectEl && selectEl.value) answerObj.optionId = selectEl.value;
+            } else if (type === 'text') {
+                const inputEl = qDiv.querySelector('.answer-text');
+                if (inputEl && inputEl.value.trim()) answerObj.textAnswer = inputEl.value.trim();
+            } else if (type === 'number') {
+                const numEl = qDiv.querySelector('.answer-number');
+                if (numEl && numEl.value) answerObj.textAnswer = numEl.value;
+            } else if (type === 'radio') {
+                const selected = qDiv.querySelector('input[type="radio"]:checked');
+                if (selected) {
+                    const val = selected.value;
+                    if (/^\d+$/.test(val)) answerObj.likertValue = parseInt(val);
+                    else answerObj.optionId = val;
+                }
+            } else if (type === 'likert') {
+                const selected = qDiv.querySelector('input[type="radio"]:checked');
+                if (selected) answerObj.likertValue = parseInt(selected.value);
+            } else if (type === 'checkbox') {
+                qDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                    answers.push({ questionId: qid, optionId: cb.value });
+                });
+                return;
+            } else if (type === 'text') {
+                const textarea = qDiv.querySelector('.answer-textarea');
+                if (textarea && textarea.value.trim()) answerObj.textAnswer = textarea.value.trim();
+            }
+
+            if (answerObj.optionId || answerObj.likertValue || answerObj.textAnswer) answers.push(answerObj);
+        });
+
+        const payload = { surveyId, respondentType, respondentEmail, answers };
+
+        // Show loading state
+        submitBtn.classList.add('loading');
+        submitBtn.innerHTML = '<span class="spinner"></span> Submitting...';
+
+        try {
+            const response = await fetch('/api/survey/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (response.ok) {
+                alert('Thank you! Your responses have been recorded.');
+                window.location.href = '/';
+            } else {
+                alert('Submission failed. Please try again.');
+            }
+        } catch (err) {
+            alert('Network error. Check your connection.');
+        } finally {
+            submitBtn.classList.remove('loading');
+            submitBtn.innerHTML = originalBtnText;
+        }
+    });
+</script>
+</body>
+</html>

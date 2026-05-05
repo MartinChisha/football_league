@@ -1,0 +1,232 @@
+com.backspacestudios.league_management/
+│
+├── core/                                   # User authentication & base user management
+│   ├── config/
+│   │   └── SecurityConfig.java            # Spring Security, JWT filter, CORS
+│   ├── controller/
+│   │   ├── AuthController.java            # login, signup
+│   │   └── UserController.java            # /me, /{userId}
+│   ├── dto/
+│   │   ├── AuthRequest.java
+│   │   ├── AuthResponse.java
+│   │   ├── SignupRequest.java
+│   │   └── UserResponse.java
+│   ├── entity/
+│   │   ├── User.java                      # users table (schema "core")
+│   │   └── SuperAdmin.java                # super_admins table (schema "core")
+│   ├── enums/
+│   │   ├── UserRole.java                  # user, team_manager, referee, league_admin, super_admin
+│   │   ├── UserStatus.java                # active, suspended, inactive, locked
+│   │   └── SystemAccessLevel.java         # full, audit_only
+│   ├── exception/
+│   │   └── GlobalExceptionHandler.java
+│   ├── repository/
+│   │   ├── UserRepository.java
+│   │   └── SuperAdminRepository.java
+│   ├── security/
+│   │   ├── CustomUserDetailsService.java
+│   │   └── JwtAuthenticationFilter.java
+│   ├── service/
+│   │   ├── AuthService.java
+│   │   └── UserService.java
+│   │   ├── CustomUserDetailsService.java
+│   │   └── FileUploadService.java
+│   └── util/
+│       └── JwtUtil.java
+│
+├── league/                                 # Leagues, divisions, league admins
+│   ├── controller/
+│   │   ├── LeagueController.java          # CRUD leagues (super admin)
+│   │   ├── SuperLeagueAdminController.java # assign/remove league admins (super admin)
+│   │   ├── LeagueAdminController.java      # get own league (league admin)
+│   │   └── DivisionController.java         # create/update divisions (league admin)
+│   ├── dto/
+│   │   ├── LeagueRequest.java
+│   │   ├── LeagueResponse.java
+│   │   ├── LeagueAdminRequest.java
+│   │   ├── LeagueAdminResponse.java
+│   │   ├── DivisionRequest.java
+│   │   ├── DivisionResponse.java
+│   │   └── DivisionApprovalRequest.java
+│   ├── entity/
+│   │   ├── League.java                    # leagues table (schema "league")
+│   │   ├── LeagueAdmin.java               # league_admins table (schema "league")
+│   │   └── Division.java                  # divisions table (schema "league")
+│   ├── enums/
+│   │   ├── FinancialAccessLevel.java
+│   │   ├── LeagueType.java
+│   │   ├── LeagueStructure.java
+│   │   ├── LeagueStatus.java
+│   │   └── DivisionStatus.java
+│   ├── repository/
+│   │   ├── LeagueRepository.java
+│   │   ├── LeagueAdminRepository.java
+│   │   └── DivisionRepository.java
+│   └── service/
+│       ├── LeagueService.java
+│       ├── LeagueAdminService.java
+│       └── DivisionService.java
+│
+├── team/                                   # Teams, team managers, player contracts
+│   ├── controller/
+│   │   ├── TeamController.java            # CRUD teams (league admin, super admin)
+│   │   ├── TeamManagerController.java     # request/approve team managers
+│   │   └── PlayerContractController.java  # create contract, approve, view by team
+│   ├── dto/
+│   │   ├── TeamRequest.java
+│   │   ├── TeamResponse.java
+│   │   ├── TeamManagerRequest.java
+│   │   ├── TeamManagerResponse.java
+│   │   ├── TeamManagerApprovalRequest.java
+│   │   ├── PlayerContractRequest.java
+│   │   ├── PlayerContractResponse.java
+│   │   └── ContractApprovalRequest.java
+│   ├── entity/
+│   │   ├── Team.java                      # teams table (schema "team")
+│   │   ├── TeamManager.java               # team_managers table (schema "team")
+│   │   └── PlayerContract.java            # player_contracts table (schema "team")
+│   ├── enums/
+│   │   ├── TeamStatus.java
+│   │   ├── FinancialStatus.java
+│   │   ├── ManagerType.java
+│   │   ├── ManagerStatus.java
+│   │   ├── ContractType.java
+│   │   ├── ContractStatus.java
+│   │   └── RegistrationStatus.java
+│   ├── repository/
+│   │   ├── TeamRepository.java
+│   │   ├── TeamManagerRepository.java
+│   │   └── PlayerContractRepository.java
+│   └── service/
+│       ├── TeamService.java
+│       ├── TeamManagerService.java
+│       └── PlayerContractService.java
+│
+├── player/                                 # Independent player management
+│   ├── controller/
+│   │   └── PlayerController.java          # CRUD players (team manager, league admin, super admin)
+│   ├── dto/
+│   │   ├── PlayerRequest.java
+│   │   └── PlayerResponse.java
+│   ├── entity/
+│   │   └── Player.java                    # players table (schema "player")
+│   ├── enums/
+│   │   ├── PreferredFoot.java
+│   │   ├── PlayerPosition.java
+│   │   ├── InternationalStatus.java
+│   │   └── PlayerStatus.java
+│   ├── repository/
+│   │   └── PlayerRepository.java
+│   └── service/
+│       └── PlayerService.java
+referee/
+├── controller/
+│   ├── RefereeBranchController.java       # CRUD branches (super admin)
+│   ├── RefereeRegistrationController.java # user submits request; admin approves
+│   ├── RefereeController.java             # view referees, update class, add records
+│   ├── BranchAdminController.java         # assign/remove branch admins (super admin)
+│   └── BranchLeagueLinkController.java    # link branches to leagues (super admin)
+├── dto/
+│   ├── RefereeBranchRequest.java
+│   ├── RefereeBranchResponse.java
+│   ├── RefereeRegistrationRequestDTO.java
+│   ├── RefereeRegistrationApprovalDTO.java
+│   ├── RefereeResponse.java
+│   ├── BranchAdminAssignmentRequest.java
+│   ├── RefereeClassUpdateRequest.java
+│   └── BranchLeagueLinkRequest.java
+├── entity/
+│   ├── RefereeBranch.java
+│   ├── MotherBody.java
+│   ├── Referee.java
+│   ├── RefereeRegistrationRequest.java
+│   ├── RefereeBranchMembership.java
+│   ├── BranchAdminAssignment.java
+│   ├── RefereeClassHistory.java
+│   ├── RefereeRecord.java
+│   └── BranchLeagueDivisionLink.java
+├── enums/
+│   ├── ProfessionalLevel.java (ELITE, REGULAR, YOUTH)
+│   ├── RefereeClass.java (D, C, B, A)
+│   ├── RequestStatus.java (PENDING, APPROVED, REJECTED)
+│   ├── MembershipStatus.java (ACTIVE, SUSPENDED, INACTIVE)
+│   └── RecordType.java (MATCH_EVALUATION, DISCIPLINARY, FITNESS_TEST)
+├── repository/
+│   ├── RefereeBranchRepository.java
+│   ├── RefereeRepository.java
+│   ├── RefereeRegistrationRequestRepository.java
+│   ├── RefereeBranchMembershipRepository.java
+│   ├── BranchAdminAssignmentRepository.java
+│   ├── RefereeClassHistoryRepository.java
+│   ├── RefereeRecordRepository.java
+│   └── BranchLeagueDivisionLinkRepository.java
+├── service/
+│   ├── RefereeBranchService.java
+│   ├── RefereeRegistrationService.java   # handles request submission & approval
+│   ├── RefereeService.java               # class updates, records, referee info
+│   ├── BranchAdminService.java
+│   └── BranchLeagueLinkService.java
+└── util/
+|  └── RefereeCodeGenerator.java
+|
+├── marketplace/                            # NEW DOMAIN
+│   ├── controller/
+│   │   ├── StoreApplicationController.java
+│   │   ├── StoreController.java
+│   │   ├── ProductController.java
+│   │   ├── ProductImageController.java          (optional, for image deletion)
+│   │   ├── BulkPricingController.java           (optional)
+│   │   └── (future: CartController, OrderController, DiscountController, ReviewController)
+│   │
+│   ├── dto/
+│   │   ├── StoreApplicationRequest.java
+│   │   ├── StoreApplicationResponse.java
+│   │   ├── StoreResponse.java
+│   │   ├── ApprovalRequest.java
+│   │   ├── ProductRequest.java
+│   │   ├── ProductResponse.java
+│   │   ├── ProductImageResponse.java
+│   │   ├── BulkPricingTierDTO.java
+│   │   ├── UpdateStockRequest.java
+│   │   └── (future: CartItemRequest, OrderRequest, etc.)
+│   │
+│   ├── entity/
+│   │   ├── StoreApplication.java
+│   │   ├── Store.java
+│   │   ├── Product.java
+│   │   ├── ProductImage.java
+│   │   ├── BulkPricingTier.java
+│   │   └── (future: Cart, CartItem, Order, OrderItem, Discount, Review, Payout)
+│   │
+│   ├── enums/
+│   │   ├── StoreCategory.java
+│   │   ├── ApplicationStatus.java
+│   │   ├── ProductCategory.java
+│   │   └── (future: OrderStatus, PaymentStatus, DiscountType)
+│   │
+│   ├── repository/
+│   │   ├── StoreApplicationRepository.java
+│   │   ├── StoreRepository.java
+│   │   ├── ProductRepository.java
+│   │   ├── ProductImageRepository.java
+│   │   ├── BulkPricingTierRepository.java
+│   │   └── (future: CartRepository, OrderRepository, etc.)
+│   │
+│   ├── service/
+│   │   ├── StoreApplicationService.java
+│   │   ├── StoreService.java                     (optional, separate from controller)
+│   │   ├── ProductService.java
+│   │   └── (future: CartService, OrderService, DiscountService, ReviewService, PaymentService)
+│   │
+│   ├── event/                                   (future – domain events)
+│   │   ├── StoreApprovedEvent.java
+│   │   ├── OrderPlacedEvent.java
+│   │   └── ...
+│   │
+│   ├── listener/                                (future – event listeners)
+│   │   └── MarketplaceEventListener.java
+│   │
+│   └── util/
+│       ├── DiscountCalculator.java              (future – for cart/order calculations)
+│       └── (future: BulkPricingEngine.java)
+└── LeagueManagementApplication.java        # Main Spring Boot entry point
