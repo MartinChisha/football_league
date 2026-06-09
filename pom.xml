@@ -17,7 +17,6 @@
 	<properties>
 		<java.version>21</java.version>
 	</properties>
-s
 	<dependencies>
 		<!-- Spring Boot Starters -->
 		<dependency>

@@ -15,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-
 import java.util.List;
 import java.util.UUID;
 
@@ -46,7 +45,8 @@ public class StoreApplicationController {
         return ResponseEntity.ok(applicationService.getMyApplication());
     }
 
-@GetMapping("/pending")
+    // Super admin endpoints
+    @GetMapping("/pending")
     @PreAuthorize("hasRole('super_admin')")
     public ResponseEntity<List<StoreApplicationResponse>> getPendingApplications() {
         return ResponseEntity.ok(applicationService.getPendingApplications());

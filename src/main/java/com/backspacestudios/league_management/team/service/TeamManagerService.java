@@ -178,6 +178,27 @@ public class TeamManagerService {
                 .orElseThrow(() -> new RuntimeException("Current user not found"))
                 .getUserId();
     }
+    @Transactional(readOnly = true)
+public List<TeamManagerResponse> getAllTeamManagers() {
+    return teamManagerRepository.findAll().stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+}
+
+@Transactional(readOnly = true)
+public List<TeamManagerResponse> getPendingTeamManagers() {
+    return teamManagerRepository.findByStatus(ManagerStatus.pending).stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+}
+
+    // Convenience overload: map a TeamManager to response by loading related User and Team
+    private TeamManagerResponse mapToResponse(TeamManager tm) {
+        if (tm == null) return null;
+        User user = userRepository.findById(tm.getUserId()).orElse(null);
+        Team team = teamRepository.findById(tm.getTeamId()).orElse(null);
+        return mapToResponse(tm, user, team);
+    }
 
     private TeamManagerResponse mapToResponse(TeamManager tm, User user, Team team) {
         TeamManagerResponse response = new TeamManagerResponse();
@@ -186,7 +207,7 @@ public class TeamManagerService {
             response.setUserEmail(user.getEmail());
             response.setUserFirstName(user.getFirstName());
             response.setUserLastName(user.getLastName());
-        }
+        }  
         response.setTeamId(tm.getTeamId());
         if (team != null) {
             response.setTeamName(team.getTeamName());

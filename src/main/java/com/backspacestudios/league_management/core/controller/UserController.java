@@ -1,9 +1,13 @@
 package com.backspacestudios.league_management.core.controller;
 
 import com.backspacestudios.league_management.core.dto.UserResponse;
+import com.backspacestudios.league_management.core.dto.UserUpdateRequest;
 import com.backspacestudios.league_management.core.entity.User;
 import com.backspacestudios.league_management.core.repository.UserRepository;
 import com.backspacestudios.league_management.core.service.UserService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,6 +52,19 @@ public class UserController {
     public ResponseEntity<List<UserResponse>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
+    @PutMapping("/{userId}")
+@PreAuthorize("hasRole('super_admin')")
+public ResponseEntity<UserResponse> updateUser(@PathVariable UUID userId,
+                                               @Valid @RequestBody UserUpdateRequest request) {
+    return ResponseEntity.ok(userService.updateUser(userId, request));
+}
+
+@DeleteMapping("/{userId}")
+@PreAuthorize("hasRole('super_admin')")
+public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
+    userService.deleteUser(userId);
+    return ResponseEntity.noContent().build();
+}
 
     @PostMapping("/me/photo")
     @PreAuthorize("isAuthenticated()")

@@ -1,6 +1,7 @@
 package com.backspacestudios.league_management.core.service;
 
 import com.backspacestudios.league_management.core.dto.UserResponse;
+import com.backspacestudios.league_management.core.dto.UserUpdateRequest;
 import com.backspacestudios.league_management.core.entity.User;
 import com.backspacestudios.league_management.core.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,32 @@ public class UserService {
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+public UserResponse updateUser(UUID userId, UserUpdateRequest request) {
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    // Update allowed fields
+    user.setFirstName(request.getFirstName());
+    user.setLastName(request.getLastName());
+    user.setEmail(request.getEmail());
+    user.setRole(request.getRole());
+    user.setUserStatus(request.getUserStatus());
+    user.setPhoneNumber(request.getPhoneNumber());
+    user.setDateOfBirth(request.getDateOfBirth());
+
+    user = userRepository.save(user);
+    return mapToResponse(user);
+}
+
+@Transactional
+public void deleteUser(UUID userId) {
+    if (!userRepository.existsById(userId)) {
+        throw new RuntimeException("User not found");
+    }
+    userRepository.deleteById(userId);
+}
 
     @Transactional
     public String updateProfileImage(UUID userId, MultipartFile file) {

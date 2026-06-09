@@ -268,3 +268,47 @@ CREATE TABLE marketplace.stores (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Products table
+CREATE TABLE marketplace.products (
+    product_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID NOT NULL,                     -- references marketplace.stores
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    category VARCHAR(50) NOT NULL,
+    tags TEXT[] DEFAULT '{}',
+    price DECIMAL(12,2) NOT NULL CHECK (price >= 0),
+    stock_quantity INT NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
+    low_stock_threshold INT DEFAULT 5,
+    weight_kg DECIMAL(8,2),
+    is_available BOOLEAN DEFAULT TRUE,
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Product images
+CREATE TABLE marketplace.product_images (
+    image_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id UUID NOT NULL,
+    image_url VARCHAR(500) NOT NULL,
+    display_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bulk pricing tiers
+CREATE TABLE marketplace.bulk_pricing_tiers (
+    tier_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id UUID NOT NULL,
+    min_quantity INT NOT NULL,
+    max_quantity INT,                           -- NULL means unlimited
+    discount_percentage DECIMAL(5,2) NOT NULL,
+    fixed_price DECIMAL(12,2),                  -- if set overrides unit price
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX idx_products_store_id ON marketplace.products(store_id);
+CREATE INDEX idx_products_category ON marketplace.products(category);
+CREATE INDEX idx_product_images_product_id ON marketplace.product_images(product_id);
+CREATE INDEX idx_bulk_pricing_tiers_product_id ON marketplace.bulk_pricing_tiers(product_id);

@@ -43,6 +43,10 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()   // Allow preflight
             .requestMatchers("/api/auth/**").permitAll()
+            .requestMatchers("/uploads/**").permitAll()
+            .requestMatchers("/api/marketplace/products/available").permitAll()
+            .requestMatchers("/api/marketplace/products/category/**").permitAll()
+            .requestMatchers("/api/marketplace/products/{productId}").permitAll()
             .requestMatchers("/api/marketplace/store-applications/apply").authenticated()
             .requestMatchers("/api/marketplace/store-applications/pending").hasRole("super_admin")
             .requestMatchers("/api/marketplace/store-applications/*/approve").hasRole("super_admin")
@@ -59,7 +63,15 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:8080","http://localhost:53052",        // 👈 add this
+    configuration.setAllowedOrigins(List.of(
+        "http://localhost:3000",
+         "http://localhost:8080",
+         "http://localhost:5173",             // 👈 Vite dev server
+        "http://127.0.0.1:5173",          // 👈 Vite dev server
+          "http://127.0.0.1:8080",
+          "http://10.205.141.225:8080",
+          "exp://10.205.141.225:8081",
+          "http://localhost:53052",        // 👈 add this
         "http://127.0.0.1:53052"));
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("*"));

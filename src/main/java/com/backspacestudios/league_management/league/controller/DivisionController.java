@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/divisions")
-@PreAuthorize("hasRole('league_admin')")
+@PreAuthorize("hasRole('league_admin') or hasRole('super_admin')")
 public class DivisionController {
 
     @Autowired

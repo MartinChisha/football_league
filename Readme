@@ -1,4 +1,4 @@
-com.backspacestudios.league_management/
+  com.backspacestudios.league_management/
 │
 ├── core/                                   # User authentication & base user management
 │   ├── config/
