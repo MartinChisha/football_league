@@ -14,6 +14,8 @@ public class TeamRequest {
     @NotNull
     private UUID leagueId;
 
+    private UUID divisionId;
+
     @NotBlank
     private String teamName;
 

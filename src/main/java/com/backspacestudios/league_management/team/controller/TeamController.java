@@ -65,4 +65,9 @@ public class TeamController {
     public ResponseEntity<TeamResponse> updateFinancialStatus(@PathVariable UUID teamId, @RequestParam FinancialStatus financialStatus) {
         return ResponseEntity.ok(teamService.updateFinancialStatus(teamId, financialStatus));
     }
+    @GetMapping("/division/{divisionId}/active")
+    @PreAuthorize("hasAnyRole('league_admin', 'super_admin', 'team_manager')")
+    public ResponseEntity<List<TeamResponse>> getActiveTeamsByDivision(@PathVariable UUID divisionId) {
+        return ResponseEntity.ok(teamService.getActiveTeamsByDivision(divisionId));
+    }
 }

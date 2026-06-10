@@ -28,6 +28,9 @@ public class Team {
     @Column(name = "league_id", nullable = false, columnDefinition = "UUID")
     private UUID leagueId;
 
+    @Column(name = "division_id", columnDefinition = "UUID")
+    private UUID divisionId;
+
     @Column(name = "team_name", nullable = false, length = 255)
     private String teamName;
 

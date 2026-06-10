@@ -63,7 +63,10 @@ CREATE TABLE IF NOT EXISTS league_admins (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (assigned_by) REFERENCES users(user_id)
 );
-
+ALTER TABLE team.teams ADD COLUMN division_id UUID;
+-- Optional: add a foreign key for data integrity (but it will point to league.divisions)
+ALTER TABLE team.teams ADD CONSTRAINT fk_team_division
+    FOREIGN KEY (division_id) REFERENCES league.divisions(division_id) ON DELETE SET NULL;
 -- Create enum for manager type and status
 CREATE TYPE team_manager_type AS ENUM ('head_manager', 'assistant_manager');
 CREATE TYPE team_manager_status AS ENUM ('pending', 'active', 'rejected');
@@ -312,3 +315,39 @@ CREATE INDEX idx_products_store_id ON marketplace.products(store_id);
 CREATE INDEX idx_products_category ON marketplace.products(category);
 CREATE INDEX idx_product_images_product_id ON marketplace.product_images(product_id);
 CREATE INDEX idx_bulk_pricing_tiers_product_id ON marketplace.bulk_pricing_tiers(product_id);
+
+
+CREATE SCHEMA IF NOT EXISTS competition;
+
+CREATE TABLE competition.seasons (
+    season_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    division_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    season_year INT NOT NULL,
+    start_date DATE,
+    end_date DATE,
+    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'fixtures_generated', 'in_progress', 'completed', 'archived')),
+    fixture_generation_config JSONB,
+    confirmed_at TIMESTAMP,
+    confirmed_by UUID,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(division_id, season_year)
+);
+
+CREATE TABLE IF NOT EXISTS competition.fixtures (
+    fixture_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    season_id UUID NOT NULL,
+    match_week INT NOT NULL,
+    home_team_id UUID NOT NULL,
+    away_team_id UUID NOT NULL,
+    scheduled_date DATE,
+    scheduled_time TIME,
+    venue VARCHAR(255),
+    status VARCHAR(20) DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'played', 'postponed', 'cancelled')),
+    home_score INT,
+    away_score INT,
+    match_report TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

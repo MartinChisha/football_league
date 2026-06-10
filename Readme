@@ -229,4 +229,32 @@ referee/
 │   └── util/
 │       ├── DiscountCalculator.java              (future – for cart/order calculations)
 │       └── (future: BulkPricingEngine.java)
-└── LeagueManagementApplication.java        # Main Spring Boot entry point
+├── competition/                                 # NEW DOMAIN – Season & Fixture Management
+│   ├── controller/
+│   │   └── SeasonController.java                # REST endpoints for seasons and fixture generation
+│   │
+│   ├── dto/
+│   │   ├── SeasonCreateRequest.java             # Input for creating a season
+│   │   ├── SeasonResponse.java                  # Output season details
+│   │   ├── FixtureGenerationRequest.java        # Optional random seed for generation
+│   │   ├── FixtureGenerationResponse.java       # Result of fixture generation (count, seed, summary)
+│   │   └── FixtureSummary.java                  # Lightweight fixture info (week, home/away team IDs)
+│   │
+│   ├── entity/
+│   │   ├── Season.java                          # seasons table (schema "competition")
+│   │   └── Fixture.java                         # fixtures table (schema "competition")
+│   │
+│   ├── enums/
+│   │   ├── SeasonStatus.java                    # DRAFT, FIXTURES_GENERATED, IN_PROGRESS, COMPLETED, ARCHIVED
+│   │   ├── FixtureStatus.java                   # SCHEDULED, PLAYED, POSTPONED, CANCELLED
+│   │   └── FixtureGenerationType.java           # ROUND_ROBIN_SINGLE, ROUND_ROBIN_DOUBLE
+│   │
+│   ├── repository/
+│   │   ├── SeasonRepository.java                # extends JpaRepository, custom finders
+│   │   └── FixtureRepository.java               # extends JpaRepository, deleteBySeasonId, etc.
+│   │
+│   ├── service/
+│   │   └── SeasonService.java                   # Business logic: create season, get by division, generate fixtures
+│   │
+│   └── util/
+│       └── RoundRobinScheduler.java             # Algorithm to generate round‑robin fixtures (single/double leg, optional seed)

@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.backspacestudios.league_management.league.entity.Division;
+import com.backspacestudios.league_management.league.repository.DivisionRepository;
 import com.backspacestudios.league_management.league.service.LeagueService;
 import com.backspacestudios.league_management.team.dto.TeamRequest;
 import com.backspacestudios.league_management.team.dto.TeamResponse;
@@ -16,7 +18,7 @@ import com.backspacestudios.league_management.team.enums.FinancialStatus;
 import com.backspacestudios.league_management.team.enums.TeamStatus;
 import com.backspacestudios.league_management.team.repository.TeamRepository;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 @Service
@@ -29,41 +31,53 @@ public class TeamService {
     @Autowired 
     private LeagueService leagueService;
 
-    @Transactional
-    public TeamResponse createTeam(TeamRequest request){
-        logger.info("Creating team '{}' in league '{}'", request.getTeamName(), request.getLeagueId());
+    @Autowired
+private DivisionRepository divisionRepository;
+   @Transactional
+public TeamResponse createTeam(TeamRequest request) {
+    logger.info("Creating team '{}' in league '{}'", request.getTeamName(), request.getLeagueId());
 
-        //Validate that the league exists (throws exception if not found)
-        leagueService.getLeagueById(request.getLeagueId());
+    // Validate that the league exists (throws exception if not found)
+    leagueService.getLeagueById(request.getLeagueId());
 
-        //Check team code uniqueness within the league
-        if (teamRepository.existsByLeagueIdAndTeamCode(request.getLeagueId(), request.getTeamCode())) {
-            logger.warn("Team code '{}' already exists in league '{}'", request.getTeamCode(), request.getLeagueId());
-            throw new IllegalArgumentException("Team code already exists in this league");
+    // Validate division if provided
+    if (request.getDivisionId() != null) {
+        Division division = divisionRepository.findById(request.getDivisionId())
+                .orElseThrow(() -> new IllegalArgumentException("Division not found"));
+        if (!division.getLeagueId().equals(request.getLeagueId())) {
+            throw new IllegalArgumentException("Division does not belong to the specified league");
         }
-        Team team = new Team();
-        team.setLeagueId(request.getLeagueId());
-        team.setTeamName(request.getTeamName());
-        team.setTeamCode(request.getTeamCode());
-        team.setShortName(request.getShortName());
-        team.setFoundedYear(request.getFoundedYear());
-        team.setHomeCity(request.getHomeCity());
-        team.setHomeStadium(request.getHomeStadium());
-        team.setStadiumCapacity(request.getStadiumCapacity());
-        team.setClubColors(request.getClubColors());
-        team.setLogoUrl(request.getLogoUrl());
-        team.setWebsite(request.getWebsite());
-        team.setContactEmail(request.getContactEmail());
-        team.setPhoneNumber(request.getPhoneNumber());
-        team.setStatus(request.getStatus() != null ? request.getStatus() : TeamStatus.active);
-        team.setFinancialStatus(request.getFinancialStatus());
-        team.setMetadata(request.getMetadata());
-
-        team = teamRepository.save(team);
-        logger.info("Team create with '{}'", team.getTeamId());
-        return mapToResponse(team);
     }
 
+    // Check team code uniqueness within the league
+    if (teamRepository.existsByLeagueIdAndTeamCode(request.getLeagueId(), request.getTeamCode())) {
+        logger.warn("Team code '{}' already exists in league '{}'", request.getTeamCode(), request.getLeagueId());
+        throw new IllegalArgumentException("Team code already exists in this league");
+    }
+    
+    Team team = new Team();
+    team.setLeagueId(request.getLeagueId());
+    team.setDivisionId(request.getDivisionId());  // may be null
+    team.setTeamName(request.getTeamName());
+    team.setTeamCode(request.getTeamCode());
+    team.setShortName(request.getShortName());
+    team.setFoundedYear(request.getFoundedYear());
+    team.setHomeCity(request.getHomeCity());
+    team.setHomeStadium(request.getHomeStadium());
+    team.setStadiumCapacity(request.getStadiumCapacity());
+    team.setClubColors(request.getClubColors());
+    team.setLogoUrl(request.getLogoUrl());
+    team.setWebsite(request.getWebsite());
+    team.setContactEmail(request.getContactEmail());
+    team.setPhoneNumber(request.getPhoneNumber());
+    team.setStatus(request.getStatus() != null ? request.getStatus() : TeamStatus.active);
+    team.setFinancialStatus(request.getFinancialStatus());
+    team.setMetadata(request.getMetadata());
+
+    team = teamRepository.save(team);
+    logger.info("Team created with ID '{}'", team.getTeamId());
+    return mapToResponse(team);
+}
       @Transactional
     public TeamResponse updateTeam(UUID teamId, TeamRequest request) {
         logger.info("Updating team {}", teamId);
@@ -138,6 +152,12 @@ public class TeamService {
         team = teamRepository.save(team);
         return mapToResponse(team);
     }
+    @Transactional(readOnly = true)
+public List<TeamResponse> getActiveTeamsByDivision(UUID divisionId) {
+    logger.info("Fetching active teams for division: {}", divisionId);
+    List<Team> teams = teamRepository.findByDivisionIdAndStatus(divisionId, TeamStatus.active);
+    return teams.stream().map(this::mapToResponse).collect(Collectors.toList());
+}
 
      TeamResponse mapToResponse(Team team) {
         TeamResponse response = new TeamResponse();
