@@ -4,7 +4,6 @@ import com.backspacestudios.league_management.league.dto.DivisionApprovalRequest
 import com.backspacestudios.league_management.league.dto.DivisionResponse;
 import com.backspacestudios.league_management.league.service.DivisionService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +15,11 @@ import java.util.List;
 @PreAuthorize("hasRole('super_admin')")
 public class SuperAdminDivisionController {
 
-    @Autowired
-    private DivisionService divisionService;
+    private final DivisionService divisionService;
+
+    SuperAdminDivisionController(DivisionService divisionService) {
+        this.divisionService = divisionService;
+    }
 
     @GetMapping("/pending")
     public ResponseEntity<List<DivisionResponse>> getPendingDivisions() {

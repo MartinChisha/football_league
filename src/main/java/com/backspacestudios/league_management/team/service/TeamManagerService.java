@@ -14,9 +14,9 @@ import com.backspacestudios.league_management.team.enums.ManagerStatus;
 import com.backspacestudios.league_management.team.enums.ManagerType;
 import com.backspacestudios.league_management.team.repository.TeamManagerRepository;
 import com.backspacestudios.league_management.team.repository.TeamRepository;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -28,21 +28,16 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class TeamManagerService {
 
     private static final Logger logger = LoggerFactory.getLogger(TeamManagerService.class);
 
-    @Autowired
-    private TeamManagerRepository teamManagerRepository;
-
-    @Autowired
-    private TeamRepository teamRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private LeagueAdminService leagueAdminService;  // to validate league admin's league
+    private final TeamManagerRepository teamManagerRepository;
+    private final TeamRepository teamRepository;
+    private final UserRepository userRepository;
+    private final LeagueAdminService leagueAdminService;
+    private final TeamService teamService;   // <-- inject instead of new TeamService()
 
     // ==================== LEAGUE ADMIN OPERATIONS ====================
 
@@ -56,9 +51,6 @@ public class TeamManagerService {
 
         // 2. Validate current user (league admin) has permission for this league
         UUID currentUserId = getCurrentUserId();
-        // Check if current user is league admin for this league (via LeagueAdminService)
-        // We'll inject LeagueAdminService or add a method. For simplicity, we assume league admin has been validated by @PreAuthorize.
-        // But we should verify that the league admin actually manages this league.
         boolean isLeagueAdminForLeague = leagueAdminService.isUserLeagueAdminForLeague(currentUserId, team.getLeagueId());
         if (!isLeagueAdminForLeague) {
             throw new RuntimeException("You are not authorized to manage teams in this league");
@@ -95,10 +87,8 @@ public class TeamManagerService {
     @Transactional(readOnly = true)
     public List<TeamManagerResponse> getTeamManagersByLeague(UUID leagueId) {
         logger.debug("Fetching team managers for league {}", leagueId);
-        // Get all teams in the league
         List<Team> teams = teamRepository.findByLeagueId(leagueId);
         List<UUID> teamIds = teams.stream().map(Team::getTeamId).collect(Collectors.toList());
-        // Get all managers for those teams (status active only? For league admin view, show all? We'll show pending and active)
         List<TeamManager> managers = teamManagerRepository.findAll().stream()
                 .filter(tm -> teamIds.contains(tm.getTeamId()))
                 .collect(Collectors.toList());
@@ -131,7 +121,6 @@ public class TeamManagerService {
         UUID currentUserId = getCurrentUserId();
 
         if (request.isApprove()) {
-            // Update user role to team_manager if not already
             if (user.getRole() != UserRole.team_manager) {
                 user.setRole(UserRole.team_manager);
                 userRepository.save(user);
@@ -164,9 +153,8 @@ public class TeamManagerService {
         }
         Team team = teamRepository.findById(tm.getTeamId())
                 .orElseThrow(() -> new RuntimeException("Team not found"));
-        // Use TeamService to convert to response (or map directly)
-        return new TeamService().mapToResponse(team); // We'll need to expose a mapper or inject TeamService
-        // Better: inject TeamService and call its getTeamById method (which already exists)
+        // Use the injected TeamService to map the team to response
+        return teamService.mapToResponse(team);
     }
 
     // ==================== HELPER METHODS ====================
@@ -178,19 +166,20 @@ public class TeamManagerService {
                 .orElseThrow(() -> new RuntimeException("Current user not found"))
                 .getUserId();
     }
-    @Transactional(readOnly = true)
-public List<TeamManagerResponse> getAllTeamManagers() {
-    return teamManagerRepository.findAll().stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
-}
 
-@Transactional(readOnly = true)
-public List<TeamManagerResponse> getPendingTeamManagers() {
-    return teamManagerRepository.findByStatus(ManagerStatus.pending).stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
-}
+    @Transactional(readOnly = true)
+    public List<TeamManagerResponse> getAllTeamManagers() {
+        return teamManagerRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<TeamManagerResponse> getPendingTeamManagers() {
+        return teamManagerRepository.findByStatus(ManagerStatus.pending).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
 
     // Convenience overload: map a TeamManager to response by loading related User and Team
     private TeamManagerResponse mapToResponse(TeamManager tm) {
@@ -207,7 +196,7 @@ public List<TeamManagerResponse> getPendingTeamManagers() {
             response.setUserEmail(user.getEmail());
             response.setUserFirstName(user.getFirstName());
             response.setUserLastName(user.getLastName());
-        }  
+        }
         response.setTeamId(tm.getTeamId());
         if (team != null) {
             response.setTeamName(team.getTeamName());

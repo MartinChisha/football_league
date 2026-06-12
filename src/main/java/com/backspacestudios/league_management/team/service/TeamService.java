@@ -3,11 +3,9 @@ package com.backspacestudios.league_management.team.service;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import com.backspacestudios.league_management.league.entity.Division;
 import com.backspacestudios.league_management.league.repository.DivisionRepository;
 import com.backspacestudios.league_management.league.service.LeagueService;
@@ -17,22 +15,20 @@ import com.backspacestudios.league_management.team.entity.Team;
 import com.backspacestudios.league_management.team.enums.FinancialStatus;
 import com.backspacestudios.league_management.team.enums.TeamStatus;
 import com.backspacestudios.league_management.team.repository.TeamRepository;
-
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 @Service
 public class TeamService {
     private static final Logger logger = LoggerFactory.getLogger(TeamService.class);
-    
-    @Autowired
-    private TeamRepository teamRepository;
+    private final TeamRepository teamRepository;
+    private final LeagueService leagueService;
+    private final DivisionRepository divisionRepository;
 
-    @Autowired 
-    private LeagueService leagueService;
-
-    @Autowired
-private DivisionRepository divisionRepository;
+    TeamService(TeamRepository teamRepository, LeagueService leagueService, DivisionRepository divisionRepository) {
+        this.teamRepository = teamRepository;
+        this.leagueService = leagueService;
+        this.divisionRepository = divisionRepository;
+    }
    @Transactional
 public TeamResponse createTeam(TeamRequest request) {
     logger.info("Creating team '{}' in league '{}'", request.getTeamName(), request.getLeagueId());

@@ -15,7 +15,6 @@ import com.backspacestudios.league_management.referee.entity.Referee;
 import com.backspacestudios.league_management.referee.entity.RefereeBranch;
 import com.backspacestudios.league_management.referee.entity.RefereeBranchMembership;
 import com.backspacestudios.league_management.referee.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,27 +25,28 @@ import java.util.stream.Collectors;
 
 @Service
 public class BranchLeagueLinkService {
+private final BranchLeagueDivisionLinkRepository linkRepository;
 
-    @Autowired
-    private BranchLeagueDivisionLinkRepository linkRepository;
+private final RefereeBranchRepository branchRepository;
 
-    @Autowired
-    private RefereeBranchRepository branchRepository;
+private final LeagueRepository leagueRepository;
 
-    @Autowired
-    private LeagueRepository leagueRepository;
+private final DivisionRepository divisionRepository;
+private final RefereeBranchMembershipRepository membershipRepository;
 
-    @Autowired
-    private DivisionRepository divisionRepository;
+private final RefereeRepository refereeRepository;
 
-    @Autowired
-    private RefereeBranchMembershipRepository membershipRepository;
-
-    @Autowired
-    private RefereeRepository refereeRepository;
-
-    @Autowired
+    
     private UserRepository userRepository;
+
+    BranchLeagueLinkService(BranchLeagueDivisionLinkRepository linkRepository, RefereeBranchRepository branchRepository, LeagueRepository leagueRepository, DivisionRepository divisionRepository, RefereeRepository refereeRepository, RefereeBranchMembershipRepository membershipRepository) {
+        this.linkRepository = linkRepository;
+        this.branchRepository = branchRepository;
+        this.leagueRepository = leagueRepository;
+        this.divisionRepository = divisionRepository;
+        this.refereeRepository = refereeRepository;
+        this.membershipRepository = membershipRepository;
+    }
 
     // ========== SUPER ADMIN OPERATIONS ==========
 

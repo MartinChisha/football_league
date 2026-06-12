@@ -1,6 +1,5 @@
 package com.backspacestudios.league_management.core.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,12 +12,14 @@ import com.backspacestudios.league_management.core.dto.SignupRequest;
 import com.backspacestudios.league_management.core.service.AuthService;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor 
 public class AuthController {
 
-    @Autowired
-    private AuthService authService;
+   
+    private final AuthService authService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {

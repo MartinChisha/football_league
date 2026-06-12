@@ -3,21 +3,21 @@ package com.backspacestudios.league_management.referee.controller;
 import com.backspacestudios.league_management.referee.dto.BranchLeagueLinkRequest;
 import com.backspacestudios.league_management.referee.dto.BranchLeagueLinkResponse;
 import com.backspacestudios.league_management.referee.service.BranchLeagueLinkService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/referee/branches/links")
 public class BranchLeagueLinkController {
+    private final BranchLeagueLinkService linkService;
 
-    @Autowired
-    private BranchLeagueLinkService linkService;
+    BranchLeagueLinkController(BranchLeagueLinkService linkService) {
+        this.linkService = linkService;
+    }
 
     @PostMapping
     @PreAuthorize("hasRole('super_admin')")
@@ -40,13 +40,13 @@ public class BranchLeagueLinkController {
     }
 
     @GetMapping("/branch/{branchId}")
-    @PreAuthorize("hasAnyRole('super_admin', 'league_admin')")
+    @PreAuthorize("hasAnyRole('super_admin', 'league_admin', 'referee', 'user')")
     public ResponseEntity<List<BranchLeagueLinkResponse>> getLinksByBranch(@PathVariable UUID branchId) {
         return ResponseEntity.ok(linkService.getLinksByBranch(branchId));
     }
 
     @GetMapping("/league/{leagueId}")
-    @PreAuthorize("hasAnyRole('super_admin', 'league_admin')")
+    @PreAuthorize("hasAnyRole('super_admin', 'league_admin', 'referee', 'user'  )")
     public ResponseEntity<List<BranchLeagueLinkResponse>> getLinksByLeague(@PathVariable UUID leagueId) {
         return ResponseEntity.ok(linkService.getLinksByLeague(leagueId));
     }

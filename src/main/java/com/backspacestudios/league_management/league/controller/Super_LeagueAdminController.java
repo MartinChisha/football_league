@@ -5,7 +5,6 @@ import com.backspacestudios.league_management.league.dto.LeagueAdminResponse;
 import com.backspacestudios.league_management.league.service.LeagueAdminService;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,9 +17,11 @@ import java.util.UUID;
 @RequestMapping("/api/admin/league-admins")
 @PreAuthorize("hasRole('super_admin')")
 public class Super_LeagueAdminController {
+    private final LeagueAdminService leagueAdminService;
 
-    @Autowired
-    private LeagueAdminService leagueAdminService;
+    Super_LeagueAdminController(LeagueAdminService leagueAdminService) {
+        this.leagueAdminService = leagueAdminService;
+    }
 
     @PostMapping("/assign")
     public ResponseEntity<LeagueAdminResponse> assignLeagueAdmin(@Valid @RequestBody LeagueAdminRequest request) {

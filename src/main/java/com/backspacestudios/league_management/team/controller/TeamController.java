@@ -6,7 +6,7 @@ import com.backspacestudios.league_management.team.enums.FinancialStatus;
 import com.backspacestudios.league_management.team.enums.TeamStatus;
 import com.backspacestudios.league_management.team.service.TeamService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,8 +19,11 @@ import java.util.UUID;
 @RequestMapping("/api/teams")
 public class TeamController {
 
-    @Autowired
-    private TeamService teamService;
+    private final TeamService teamService;
+
+    TeamController(TeamService teamService) {
+        this.teamService = teamService;
+    }
 
     // League admin and super admin can create teams
     @PostMapping

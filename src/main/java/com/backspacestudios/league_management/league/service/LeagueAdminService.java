@@ -14,7 +14,6 @@ import com.backspacestudios.league_management.league.repository.LeagueRepository
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -28,15 +27,15 @@ import java.util.stream.Collectors;
 public class LeagueAdminService {
 
     private static final Logger logger = LoggerFactory.getLogger(LeagueAdminService.class);
+    private final LeagueAdminRepository leagueAdminRepository;
+    private final UserRepository userRepository;
+    private final LeagueRepository leagueRepository;
 
-    @Autowired
-    private LeagueAdminRepository leagueAdminRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private LeagueRepository leagueRepository;
+    LeagueAdminService(LeagueAdminRepository leagueAdminRepository, UserRepository userRepository, LeagueRepository leagueRepository) {
+        this.leagueAdminRepository = leagueAdminRepository;
+        this.userRepository = userRepository;
+        this.leagueRepository = leagueRepository;
+    }
 
     // ==================== SUPER ADMIN OPERATIONS ====================
 

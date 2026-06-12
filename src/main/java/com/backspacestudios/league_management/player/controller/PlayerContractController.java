@@ -3,7 +3,6 @@ package com.backspacestudios.league_management.player.controller;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.backspacestudios.league_management.player.dto.ContractApprovalRequest;
 import com.backspacestudios.league_management.player.dto.PlayerContractRequest;
 import com.backspacestudios.league_management.player.dto.PlayerContractResponse;
@@ -26,8 +24,11 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/contracts")
 public class PlayerContractController {
 
-    @Autowired
-    private PlayerContractService contractService;
+   private final PlayerContractService contractService;
+
+    PlayerContractController(PlayerContractService contractService) {
+        this.contractService = contractService;
+    }
 
     // Team manager creates contract request
     @PostMapping

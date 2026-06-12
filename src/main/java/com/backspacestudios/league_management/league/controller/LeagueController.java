@@ -3,9 +3,7 @@ package com.backspacestudios.league_management.league.controller;
 import com.backspacestudios.league_management.league.dto.LeagueRequest;
 import com.backspacestudios.league_management.league.dto.LeagueResponse;
 import com.backspacestudios.league_management.league.service.LeagueService;
-
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,10 +17,11 @@ import java.util.UUID;
 @PreAuthorize("hasRole('super_admin')")  // Only super admin can manage leagues
 public class LeagueController {
 
-    @Autowired
-    private LeagueService leagueService;
+    private final LeagueService leagueService;
 
-    @PostMapping
+    LeagueController(LeagueService leagueService) {
+        this.leagueService = leagueService;
+    }
     public ResponseEntity<LeagueResponse> createLeague(@Valid @RequestBody LeagueRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(leagueService.createLeague(request));
     }

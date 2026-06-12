@@ -9,8 +9,7 @@ import com.backspacestudios.league_management.core.enums.UserStatus;
 import com.backspacestudios.league_management.core.repository.SuperAdminRepository;
 import com.backspacestudios.league_management.core.repository.UserRepository;
 import com.backspacestudios.league_management.core.util.JwtUtil;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,22 +23,14 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 
 @Service
+@RequiredArgsConstructor    // <-- generates constructor for all final fields
 public class AuthService {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private SuperAdminRepository superAdminRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final SuperAdminRepository superAdminRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     public AuthResponse login(String email, String password) {
         Authentication authentication = authenticationManager.authenticate(
@@ -71,7 +62,7 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-        user.setRole(request.getRole());  // UserRole
+        user.setRole(request.getRole());
         user.setPhoneNumber(request.getPhoneNumber());
         user.setDateOfBirth(request.getDateOfBirth());
         user.setUserStatus(UserStatus.active);
@@ -83,7 +74,7 @@ public class AuthService {
         if (request.getRole() == UserRole.super_admin) {
             SuperAdmin superAdmin = new SuperAdmin();
             superAdmin.setUser(user);
-           superAdmin.setSystemPermissions(new HashMap<>());
+            superAdmin.setSystemPermissions(new HashMap<>());
             superAdmin.setCanImpersonate(false);
             superAdmin.setSystemAccessLevel(com.backspacestudios.league_management.core.enums.SystemAccessLevel.full);
             superAdmin.setAssignedBy(null);

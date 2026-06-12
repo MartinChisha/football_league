@@ -10,7 +10,6 @@ import com.backspacestudios.league_management.league.repository.LeagueRepository
 import com.backspacestudios.league_management.core.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -25,14 +24,15 @@ public class DivisionService {
 
     private static final Logger logger = LoggerFactory.getLogger(DivisionService.class);
 
-    @Autowired
-    private DivisionRepository divisionRepository;
+    private final DivisionRepository divisionRepository;
+    private final LeagueRepository leagueRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private LeagueRepository leagueRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    DivisionService(DivisionRepository divisionRepository, UserRepository userRepository, LeagueRepository leagueRepository) {
+        this.divisionRepository = divisionRepository;
+        this.userRepository = userRepository;
+        this.leagueRepository = leagueRepository;
+    }
 
     // ==================== LEAGUE ADMIN OPERATIONS ====================
 

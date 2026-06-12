@@ -3,7 +3,6 @@ package com.backspacestudios.league_management.player.controller;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,7 +26,6 @@ import jakarta.validation.Valid;
 @PreAuthorize("hasAnyRole('team_manager', 'league_admin', 'super_admin')")
 public class PlayerController {
 
-    @Autowired
     private PlayerService playerService;
 
     @PostMapping

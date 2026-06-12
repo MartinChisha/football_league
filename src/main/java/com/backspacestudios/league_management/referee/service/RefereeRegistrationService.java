@@ -6,11 +6,13 @@ import com.backspacestudios.league_management.core.repository.UserRepository;
 import com.backspacestudios.league_management.referee.dto.RefereeRegistrationApprovalDTO;
 import com.backspacestudios.league_management.referee.dto.RefereeRegistrationRequestDTO;
 import com.backspacestudios.league_management.referee.dto.RefereeResponse;
-import com.backspacestudios.league_management.referee.entity.*;
+import com.backspacestudios.league_management.referee.entity.Referee;
+import com.backspacestudios.league_management.referee.entity.RefereeBranchMembership;
+import com.backspacestudios.league_management.referee.entity.RefereeRegistrationRequest;
 import com.backspacestudios.league_management.referee.enums.MembershipStatus;
 import com.backspacestudios.league_management.referee.enums.RequestStatus;
 import com.backspacestudios.league_management.referee.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,25 +21,15 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class RefereeRegistrationService {
 
-    @Autowired
-    private RefereeRegistrationRequestRepository requestRepository;
-
-    @Autowired
-    private RefereeRepository refereeRepository;
-
-    @Autowired
-    private RefereeBranchMembershipRepository membershipRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private BranchAdminAssignmentRepository branchAdminAssignmentRepository;
-
-    @Autowired
-    private RefereeBranchRepository branchRepository;
+    private final RefereeRegistrationRequestRepository requestRepository;
+    private final RefereeRepository refereeRepository;
+    private final RefereeBranchMembershipRepository membershipRepository;
+    private final UserRepository userRepository;
+    private final BranchAdminAssignmentRepository branchAdminAssignmentRepository;
+    private final RefereeBranchRepository branchRepository;
 
     // User submits a request to become a referee for a branch
     @Transactional
@@ -133,6 +125,11 @@ public class RefereeRegistrationService {
         Referee referee = refereeRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Referee not found"));
         return mapToResponse(referee);
+    }
+
+    public RefereeRegistrationRequest getPendingRequestByUserId(UUID userId) {
+        return requestRepository.findByUserIdAndStatus(userId, RequestStatus.pending)
+                .orElseThrow(() -> new RuntimeException("No pending request found"));
     }
 
     private RefereeResponse mapToResponse(Referee referee) {

@@ -12,4 +12,5 @@ public interface RefereeRegistrationRequestRepository extends JpaRepository<Refe
     Optional<RefereeRegistrationRequest> findByUserIdAndBranchId(UUID userId, UUID branchId);
     List<RefereeRegistrationRequest> findByStatus(RequestStatus status);
     List<RefereeRegistrationRequest> findByBranchIdAndStatus(UUID branchId, RequestStatus status);
+Optional<RefereeRegistrationRequest> findByUserIdAndStatus(UUID userId, RequestStatus status);
 }

@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -31,16 +30,16 @@ public class PlayerContractService {
 
     private static final Logger logger = LoggerFactory.getLogger(PlayerContractService.class);
 
-    @Autowired
+    
     private PlayerContractRepository contractRepository;
 
-    @Autowired
+
     private PlayerRepository playerRepository;   // ADDED
 
-    @Autowired
+    
     private TeamRepository teamRepository;
 
-    @Autowired
+    
     private UserRepository userRepository;
 
     // ==================== TEAM MANAGER OPERATIONS ====================

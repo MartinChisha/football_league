@@ -3,21 +3,21 @@ package com.backspacestudios.league_management.referee.controller;
 import com.backspacestudios.league_management.referee.dto.RefereeBranchRequest;
 import com.backspacestudios.league_management.referee.dto.RefereeBranchResponse;
 import com.backspacestudios.league_management.referee.service.RefereeBranchService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/referee/branches")
 public class RefereeBranchController {
+    private final RefereeBranchService branchService;
 
-    @Autowired
-    private RefereeBranchService branchService;
+    RefereeBranchController(RefereeBranchService branchService) {
+        this.branchService = branchService;
+    }
 
     @PostMapping
     @PreAuthorize("hasRole('super_admin')")
@@ -40,13 +40,13 @@ public class RefereeBranchController {
     }
 
     @GetMapping("/{branchId}")
-    @PreAuthorize("hasAnyRole('super_admin', 'LEAGUE_ADMIN', 'REFEREE')")
+    @PreAuthorize("hasAnyRole('super_admin', 'league_admin', 'referee', 'user')")
     public ResponseEntity<RefereeBranchResponse> getBranch(@PathVariable UUID branchId) {
         return ResponseEntity.ok(branchService.getBranch(branchId));
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('super_admin', 'LEAGUE_ADMIN', 'REFEREE')")
+    @PreAuthorize("hasAnyRole('super_admin', 'league_admin', 'referee', 'user')")
     public ResponseEntity<List<RefereeBranchResponse>> getAllBranches() {
         return ResponseEntity.ok(branchService.getAllBranches());
     }

@@ -11,7 +11,6 @@ import com.backspacestudios.league_management.league.repository.LeagueRepository
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -25,12 +24,13 @@ import java.util.stream.Collectors;
 public class LeagueService {
 
     private static final Logger logger = LoggerFactory.getLogger(LeagueService.class);
+    private final LeagueRepository leagueRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private LeagueRepository leagueRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    LeagueService(LeagueRepository leagueRepository, UserRepository userRepository) {
+        this.leagueRepository = leagueRepository;
+        this.userRepository = userRepository;
+    }
 
     @Transactional
     public LeagueResponse createLeague(LeagueRequest request) {

@@ -4,8 +4,9 @@ import com.backspacestudios.league_management.core.service.UserService;
 import com.backspacestudios.league_management.referee.dto.RefereeRegistrationApprovalDTO;
 import com.backspacestudios.league_management.referee.dto.RefereeRegistrationRequestDTO;
 import com.backspacestudios.league_management.referee.dto.RefereeResponse;
+import com.backspacestudios.league_management.referee.entity.RefereeRegistrationRequest;
 import com.backspacestudios.league_management.referee.service.RefereeRegistrationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,13 +16,11 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/referee/registrations")
+@RequiredArgsConstructor
 public class RefereeRegistrationController {
 
-    @Autowired
-    private RefereeRegistrationService registrationService;
-
-    @Autowired
-    private UserService userService;
+    private final RefereeRegistrationService registrationService;
+    private final UserService userService;
 
     // Current logged-in user submits a request
     @PostMapping("/request")
@@ -34,7 +33,7 @@ public class RefereeRegistrationController {
 
     // Super admin or branch admin approves/rejects
     @PostMapping("/approve")
-    @PreAuthorize("hasAnyRole('super_admin', 'referee')") // REFEREE role but we'll check branch admin inside service
+    @PreAuthorize("hasAnyRole('super_admin', 'referee')")
     public ResponseEntity<Void> processApproval(@RequestBody RefereeRegistrationApprovalDTO approvalDto) {
         UUID currentUserId = userService.getCurrentUser().getUserId();
         registrationService.processApproval(currentUserId, approvalDto);
@@ -46,5 +45,13 @@ public class RefereeRegistrationController {
     public ResponseEntity<RefereeResponse> getMyRefereeProfile() {
         UUID currentUserId = userService.getCurrentUser().getUserId();
         return ResponseEntity.ok(registrationService.getRefereeByUserId(currentUserId));
+    }
+
+    @GetMapping("/my-request")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<RefereeRegistrationRequest> getMyRegistrationRequest() {
+        UUID userId = userService.getCurrentUser().getUserId();
+        RefereeRegistrationRequest request = registrationService.getPendingRequestByUserId(userId);
+        return ResponseEntity.ok(request);
     }
 }

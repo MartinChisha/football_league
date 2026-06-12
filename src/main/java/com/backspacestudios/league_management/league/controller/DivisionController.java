@@ -4,7 +4,7 @@ import com.backspacestudios.league_management.league.dto.DivisionRequest;
 import com.backspacestudios.league_management.league.dto.DivisionResponse;
 import com.backspacestudios.league_management.league.service.DivisionService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,8 +18,11 @@ import java.util.UUID;
 @PreAuthorize("hasRole('league_admin') or hasRole('super_admin')")
 public class DivisionController {
 
-    @Autowired
-    private DivisionService divisionService;
+    private final DivisionService divisionService;
+
+    DivisionController(DivisionService divisionService) {
+        this.divisionService = divisionService;
+    }
 
     @PostMapping("/create")
     public ResponseEntity<DivisionResponse> createDivision(@Valid @RequestBody DivisionRequest request) {
