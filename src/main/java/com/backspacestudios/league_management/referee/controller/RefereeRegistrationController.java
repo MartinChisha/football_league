@@ -1,6 +1,7 @@
 package com.backspacestudios.league_management.referee.controller;
 
 import com.backspacestudios.league_management.core.service.UserService;
+import com.backspacestudios.league_management.referee.dto.RefereeMembershipResponse;
 import com.backspacestudios.league_management.referee.dto.RefereeRegistrationApprovalDTO;
 import com.backspacestudios.league_management.referee.dto.RefereeRegistrationRequestDTO;
 import com.backspacestudios.league_management.referee.dto.RefereeResponse;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -54,4 +56,10 @@ public class RefereeRegistrationController {
         RefereeRegistrationRequest request = registrationService.getPendingRequestByUserId(userId);
         return ResponseEntity.ok(request);
     }
+    @GetMapping("/me/memberships")
+@PreAuthorize("hasRole('referee')")
+public ResponseEntity<List<RefereeMembershipResponse>> getMyMemberships() {
+    UUID userId = userService.getCurrentUser().getUserId();
+    return ResponseEntity.ok(registrationService.getMyMemberships(userId));
+}
 }

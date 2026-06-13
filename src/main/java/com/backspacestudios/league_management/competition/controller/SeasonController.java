@@ -29,10 +29,13 @@ import java.util.UUID;
 public class SeasonController {
 
     private static final Logger log = LoggerFactory.getLogger(SeasonController.class);
-   
-    private SeasonService seasonService;
-  
-    private UserRepository userRepository;
+   private final SeasonService seasonService;
+  private final UserRepository userRepository;
+
+    SeasonController(SeasonService seasonService, UserRepository userRepository) {
+        this.seasonService = seasonService;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Creates a new season for a given division.

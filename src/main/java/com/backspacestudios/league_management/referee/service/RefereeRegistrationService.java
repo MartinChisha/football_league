@@ -3,10 +3,12 @@ package com.backspacestudios.league_management.referee.service;
 import com.backspacestudios.league_management.core.entity.User;
 import com.backspacestudios.league_management.core.enums.UserRole;
 import com.backspacestudios.league_management.core.repository.UserRepository;
+import com.backspacestudios.league_management.referee.dto.RefereeMembershipResponse;
 import com.backspacestudios.league_management.referee.dto.RefereeRegistrationApprovalDTO;
 import com.backspacestudios.league_management.referee.dto.RefereeRegistrationRequestDTO;
 import com.backspacestudios.league_management.referee.dto.RefereeResponse;
 import com.backspacestudios.league_management.referee.entity.Referee;
+import com.backspacestudios.league_management.referee.entity.RefereeBranch;
 import com.backspacestudios.league_management.referee.entity.RefereeBranchMembership;
 import com.backspacestudios.league_management.referee.entity.RefereeRegistrationRequest;
 import com.backspacestudios.league_management.referee.enums.MembershipStatus;
@@ -18,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -131,6 +135,33 @@ public class RefereeRegistrationService {
         return requestRepository.findByUserIdAndStatus(userId, RequestStatus.pending)
                 .orElseThrow(() -> new RuntimeException("No pending request found"));
     }
+    public List<RefereeMembershipResponse> getMyMemberships(UUID userId) {
+    Referee referee = refereeRepository.findByUserId(userId)
+            .orElseThrow(() -> new RuntimeException("Referee not found"));
+    List<RefereeBranchMembership> memberships = membershipRepository.findByRefereeId(referee.getRefereeId());
+    return memberships.stream().map(m -> {
+        RefereeBranch branch = branchRepository.findById(m.getBranchId()).orElse(null);
+        RefereeMembershipResponse resp = new RefereeMembershipResponse();
+        resp.setRefereeId(referee.getRefereeId());
+        resp.setUserId(referee.getUserId());
+        resp.setRefereeCode(referee.getRefereeCode());
+        resp.setCurrentClass(referee.getCurrentClass());
+        resp.setFirstName(null); // we can fill later from user
+        resp.setLastName(null);
+        resp.setEmail(null);
+        resp.setDateOfBirth(referee.getDateOfBirth());
+        resp.setNationality(referee.getNationality());
+        resp.setBranchId(m.getBranchId());
+        resp.setBranchName(branch != null ? branch.getBranchName() : null);
+        resp.setBranchCode(branch != null ? branch.getBranchCode() : null);
+        resp.setDistrict(branch != null ? branch.getDistrict() : null);
+        resp.setProfessionalLevel(branch != null ? String.valueOf(branch.getProfessionalLevel()) : null);
+        resp.setJoinedDate(m.getJoinedDate());
+        resp.setMembershipStatus(m.getStatus().name());
+        resp.setCertificateUrl(m.getCertificateUrl());
+        return resp;
+    }).collect(Collectors.toList());
+}
 
     private RefereeResponse mapToResponse(Referee referee) {
         RefereeResponse response = new RefereeResponse();

@@ -36,6 +36,7 @@ public class DivisionController {
     }
 
     @GetMapping("/league/{leagueId}")
+    @PreAuthorize("hasAnyRole('league_admin', 'super_admin', 'referee')")
     public ResponseEntity<List<DivisionResponse>> getDivisionsByLeague(@PathVariable UUID leagueId) {
         return ResponseEntity.ok(divisionService.getDivisionsByLeague(leagueId));
     }

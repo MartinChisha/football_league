@@ -1,6 +1,9 @@
 package com.backspacestudios.league_management.competition.service;
 
-import com.backspacestudios.league_management.competition.dto.*;
+import com.backspacestudios.league_management.competition.dto.FixtureGenerationResponse;
+import com.backspacestudios.league_management.competition.dto.FixtureSummary;
+import com.backspacestudios.league_management.competition.dto.SeasonCreateRequest;
+import com.backspacestudios.league_management.competition.dto.SeasonResponse;
 import com.backspacestudios.league_management.competition.entity.Fixture;
 import com.backspacestudios.league_management.competition.entity.Season;
 import com.backspacestudios.league_management.competition.enums.SeasonStatus;
@@ -29,26 +32,31 @@ public class SeasonService {
 
      private static final Logger logger = LoggerFactory.getLogger(SeasonService.class);
 
+    private final SeasonRepository seasonRepository;
+    private final DivisionRepository divisionRepository;
+   private final LeagueAdminRepository leagueAdminRepository;
+    private final UserRepository userRepository;
+   private final TeamRepository teamRepository;        // ← NEW
 
-    private SeasonRepository seasonRepository;
-
-    private DivisionRepository divisionRepository;
-
-   
-    private LeagueAdminRepository leagueAdminRepository;
-
-    
-    private UserRepository userRepository;
-
-   
-    private TeamRepository teamRepository;        // ← NEW
-
-  
-    private FixtureRepository fixtureRepository;  // ← NEW
+  private final FixtureRepository fixtureRepository;  // ← NEW
 
     
     
     RoundRobinScheduler scheduler;
+
+    SeasonService(SeasonRepository seasonRepository,  
+DivisionRepository divisionRepository,  
+LeagueAdminRepository leagueAdminRepository,  
+UserRepository userRepository,  
+RoundRobinScheduler scheduler, TeamRepository teamRepository, FixtureRepository fixtureRepository) {
+        this.seasonRepository = seasonRepository;
+        this.divisionRepository = divisionRepository;
+        this.leagueAdminRepository = leagueAdminRepository;
+        this.userRepository = userRepository;
+        this.scheduler = scheduler;
+        this.teamRepository = teamRepository;
+        this.fixtureRepository = fixtureRepository;
+    }
     
     
     private UUID getCurrentUserId() {

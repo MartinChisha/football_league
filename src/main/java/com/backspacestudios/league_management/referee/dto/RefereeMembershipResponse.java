@@ -17,6 +17,10 @@ public class RefereeMembershipResponse {
     private LocalDate dateOfBirth;
     private String nationality;
     private UUID branchId;
+    private String branchName;
+    private String branchCode;
+    private String district;
+    private String professionalLevel;
     private LocalDate joinedDate;
     private String membershipStatus;
     private String certificateUrl;
