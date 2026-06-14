@@ -1,5 +1,8 @@
 package com.backspacestudios.league_management.referee.controller;
 
+import com.backspacestudios.league_management.competition.dto.AssignRefereeRequest;
+import com.backspacestudios.league_management.competition.dto.FixtureRefereeResponse;
+import com.backspacestudios.league_management.competition.service.RefereeAssignmentService;
 import com.backspacestudios.league_management.core.service.UserService;
 import com.backspacestudios.league_management.referee.dto.BranchAdminInfo;
 import com.backspacestudios.league_management.referee.dto.BranchRefereeDTO;
@@ -20,7 +23,8 @@ public class BranchAdminDashboardController {
 
     private final BranchAdminDashboardService dashboardService;
     private final UserService userService;
-
+    private final RefereeAssignmentService assignmentService;
+    
     @GetMapping("/me")
     @PreAuthorize("hasRole('referee')")
     public ResponseEntity<BranchAdminInfo> getCurrentBranchAdmin() {
@@ -43,4 +47,23 @@ public class BranchAdminDashboardController {
         UUID branchId = dashboardService.getBranchIdByUserId(userId);
         return ResponseEntity.ok(dashboardService.getPendingRequests(branchId));
     }
+    @PostMapping("/assign-referee")
+@PreAuthorize("hasRole('referee')")
+public ResponseEntity<FixtureRefereeResponse> assignReferee(@RequestBody AssignRefereeRequest request) {
+    UUID userId = userService.getCurrentUser().getUserId();
+    return ResponseEntity.ok(assignmentService.assignReferee(request, userId));
+}
+
+@DeleteMapping("/fixtures/{fixtureId}/referees/{role}")
+@PreAuthorize("hasRole('referee')")
+public ResponseEntity<Void> removeAssignment(@PathVariable UUID fixtureId, @PathVariable String role) {
+    assignmentService.removeAssignment(fixtureId, role);
+    return ResponseEntity.noContent().build();
+}
+
+@GetMapping("/fixtures/{fixtureId}/referees")
+@PreAuthorize("hasRole('referee')")
+public ResponseEntity<List<FixtureRefereeResponse>> getAssignments(@PathVariable UUID fixtureId) {
+    return ResponseEntity.ok(assignmentService.getAssignmentsForFixture(fixtureId));
+}
 }

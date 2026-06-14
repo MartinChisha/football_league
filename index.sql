@@ -351,3 +351,15 @@ CREATE TABLE IF NOT EXISTS competition.fixtures (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS competition.fixture_referees (
+    assignment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    fixture_id UUID NOT NULL REFERENCES competition.fixtures(fixture_id) ON DELETE CASCADE,
+    referee_id UUID NOT NULL REFERENCES referee.referees(referee_id) ON DELETE CASCADE,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('main', 'assistant1', 'assistant2', 'fourth')),
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    assigned_by UUID,
+    UNIQUE(fixture_id, role)
+);
+
+CREATE INDEX idx_fixture_referees_fixture ON competition.fixture_referees(fixture_id);
+CREATE INDEX idx_fixture_referees_referee ON competition.fixture_referees(referee_id);
