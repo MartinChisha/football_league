@@ -132,6 +132,7 @@ public List<FixtureSummary> getFixturesBySeason(UUID seasonId) {
         logger.info("Created season {} for division {} year {}", saved.getSeasonId(), request.getDivisionId(), request.getYear());
         return mapToResponse(saved);
     }
+
  @Transactional
     public FixtureGenerationResponse generateFixtures(UUID seasonId, Long randomSeed, UUID userId) {
         Season season = seasonRepository.findById(seasonId)
