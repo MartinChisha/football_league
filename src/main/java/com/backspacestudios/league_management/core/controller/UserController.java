@@ -39,7 +39,7 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasRole('super_admin')")
+    @PreAuthorize("hasAnyRole('super_admin','league_admin')")
     public ResponseEntity<UserResponse> getUserByEmail(@RequestParam String email) {
         return ResponseEntity.ok(userService.getUserByEmail(email));
     }

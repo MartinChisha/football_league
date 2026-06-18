@@ -16,6 +16,13 @@ public class FileUploadService {
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;
 
+    private static final String TEAM_LOGO_DIR = "teams/logos";
+
+    public String saveTeamLogo(MultipartFile file, UUID teamId) throws IOException {
+        String fileName = "team_logo_" + teamId.toString() + "_" + System.currentTimeMillis() + ".jpg";
+        return saveFile(file, TEAM_LOGO_DIR, fileName);
+    }
+
     // Profile image sub‑folder
     private static final String PROFILE_DIR = "profiles";
     // Product image sub‑folder

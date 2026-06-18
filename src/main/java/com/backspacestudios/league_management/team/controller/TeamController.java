@@ -1,5 +1,6 @@
 package com.backspacestudios.league_management.team.controller;
 
+import com.backspacestudios.league_management.core.repository.UserRepository;
 import com.backspacestudios.league_management.team.dto.TeamRequest;
 import com.backspacestudios.league_management.team.dto.TeamResponse;
 import com.backspacestudios.league_management.team.enums.FinancialStatus;
@@ -10,7 +11,10 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,9 +24,10 @@ import java.util.UUID;
 public class TeamController {
 
     private final TeamService teamService;
-
-    TeamController(TeamService teamService) {
+     private final UserRepository userRepository; 
+    TeamController(TeamService teamService, UserRepository userRepository) {
         this.teamService = teamService;
+        this.userRepository = userRepository;
     }
 
     // League admin and super admin can create teams
@@ -44,11 +49,18 @@ public class TeamController {
         return ResponseEntity.ok(teamService.getTeamsByLeague(leagueId));
     }
 
-    @PutMapping("/{teamId}")
-    @PreAuthorize("hasRole('league_admin') or hasRole('super_admin')")
-    public ResponseEntity<TeamResponse> updateTeam(@PathVariable UUID teamId, @Valid @RequestBody TeamRequest request) {
+     @PutMapping("/{teamId}")
+    @PreAuthorize("hasAnyRole('league_admin','super_admin','team_manager')")
+    public ResponseEntity<TeamResponse> updateTeam(@PathVariable UUID teamId,
+                                                   @Valid @RequestBody TeamRequest request) {
+        if (SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .stream().anyMatch(a -> a.getAuthority().equals("ROLE_team_manager"))) {
+            UUID currentUserId = getCurrentUserId();
+            teamService.verifyTeamManager(teamId, currentUserId);
+        }
         return ResponseEntity.ok(teamService.updateTeam(teamId, request));
     }
+
 
     @DeleteMapping("/{teamId}")
     @PreAuthorize("hasRole('super_admin')")  // Only super admin can delete teams
@@ -72,5 +84,22 @@ public class TeamController {
     @PreAuthorize("hasAnyRole('league_admin', 'super_admin', 'team_manager')")
     public ResponseEntity<List<TeamResponse>> getActiveTeamsByDivision(@PathVariable UUID divisionId) {
         return ResponseEntity.ok(teamService.getActiveTeamsByDivision(divisionId));
+    }
+    @PostMapping("/{teamId}/logo")
+    @PreAuthorize("hasAnyRole('team_manager','league_admin','super_admin')")
+    public ResponseEntity<TeamResponse> uploadTeamLogo(
+            @PathVariable UUID teamId,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(teamService.updateTeamLogo(teamId, file));
+    }
+
+        private UUID getCurrentUserId() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+        String email = userDetails.getUsername();
+        com.backspacestudios.league_management.core.entity.User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getUserId();
     }
 }

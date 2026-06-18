@@ -2,6 +2,7 @@ package com.backspacestudios.league_management.competition.controller;
 
 import com.backspacestudios.league_management.competition.dto.FixtureGenerationRequest;
 import com.backspacestudios.league_management.competition.dto.FixtureGenerationResponse;
+import com.backspacestudios.league_management.competition.dto.FixtureScheduleRequest;
 import com.backspacestudios.league_management.competition.dto.FixtureSummary;
 import com.backspacestudios.league_management.competition.dto.SeasonCreateRequest;
 import com.backspacestudios.league_management.competition.dto.SeasonResponse;
@@ -140,6 +141,13 @@ public ResponseEntity<List<FixtureSummary>> getFixturesBySeason(@PathVariable UU
     log.debug("Fetching fixtures for season: {}", seasonId);
     List<FixtureSummary> fixtures = seasonService.getFixturesBySeason(seasonId);
     return ResponseEntity.ok(fixtures);
+}
+@PutMapping("/fixtures/{fixtureId}/schedule")
+@PreAuthorize("hasAnyRole('league_admin','super_admin')")
+public ResponseEntity<FixtureSummary> updateFixtureSchedule(
+        @PathVariable UUID fixtureId,
+        @RequestBody FixtureScheduleRequest request) {
+    return ResponseEntity.ok(seasonService.updateFixtureSchedule(fixtureId, request));
 }
 
 }

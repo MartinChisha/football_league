@@ -1,6 +1,7 @@
 package com.backspacestudios.league_management.competition.service;
 
 import com.backspacestudios.league_management.competition.dto.FixtureGenerationResponse;
+import com.backspacestudios.league_management.competition.dto.FixtureScheduleRequest;
 import com.backspacestudios.league_management.competition.dto.FixtureSummary;
 import com.backspacestudios.league_management.competition.dto.SeasonCreateRequest;
 import com.backspacestudios.league_management.competition.dto.SeasonResponse;
@@ -27,28 +28,27 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 @Service
 public class SeasonService {
 
-     private static final Logger logger = LoggerFactory.getLogger(SeasonService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SeasonService.class);
 
     private final SeasonRepository seasonRepository;
     private final DivisionRepository divisionRepository;
-   private final LeagueAdminRepository leagueAdminRepository;
+    private final LeagueAdminRepository leagueAdminRepository;
     private final UserRepository userRepository;
-   private final TeamRepository teamRepository;        // ← NEW
+    private final TeamRepository teamRepository;
+    private final FixtureRepository fixtureRepository;
+    private final RoundRobinScheduler scheduler;
 
-  private final FixtureRepository fixtureRepository;  // ← NEW
-
-    
-    
-    RoundRobinScheduler scheduler;
-
-    SeasonService(SeasonRepository seasonRepository,  
-DivisionRepository divisionRepository,  
-LeagueAdminRepository leagueAdminRepository,  
-UserRepository userRepository,  
-RoundRobinScheduler scheduler, TeamRepository teamRepository, FixtureRepository fixtureRepository) {
+    public SeasonService(SeasonRepository seasonRepository,
+                         DivisionRepository divisionRepository,
+                         LeagueAdminRepository leagueAdminRepository,
+                         UserRepository userRepository,
+                         RoundRobinScheduler scheduler,
+                         TeamRepository teamRepository,
+                         FixtureRepository fixtureRepository) {
         this.seasonRepository = seasonRepository;
         this.divisionRepository = divisionRepository;
         this.leagueAdminRepository = leagueAdminRepository;
@@ -57,8 +57,7 @@ RoundRobinScheduler scheduler, TeamRepository teamRepository, FixtureRepository 
         this.teamRepository = teamRepository;
         this.fixtureRepository = fixtureRepository;
     }
-    
-    
+
     private UUID getCurrentUserId() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String email = userDetails.getUsername();
@@ -66,58 +65,55 @@ RoundRobinScheduler scheduler, TeamRepository teamRepository, FixtureRepository 
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"))
                 .getUserId();
     }
+
     @Transactional(readOnly = true)
-public List<SeasonResponse> getSeasonsByDivision(UUID divisionId) {
-    return seasonRepository.findByDivisionId(divisionId)
-            .stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
-}
+    public List<SeasonResponse> getSeasonsByDivision(UUID divisionId) {
+        return seasonRepository.findByDivisionId(divisionId)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
 
-@Transactional
-public SeasonResponse updateSeasonStatus(UUID seasonId, SeasonStatus newStatus) {
-    Season season = seasonRepository.findById(seasonId)
-            .orElseThrow(() -> new RuntimeException("Season not found"));
-    season.setStatus(newStatus);
-    season = seasonRepository.save(season);
-    return mapToResponse(season);
-}
+    @Transactional
+    public SeasonResponse updateSeasonStatus(UUID seasonId, SeasonStatus newStatus) {
+        Season season = seasonRepository.findById(seasonId)
+                .orElseThrow(() -> new RuntimeException("Season not found"));
+        season.setStatus(newStatus);
+        season = seasonRepository.save(season);
+        return mapToResponse(season);
+    }
 
-@Transactional(readOnly = true)
-public SeasonResponse getSeasonById(UUID seasonId) {
-    Season season = seasonRepository.findById(seasonId)
-            .orElseThrow(() -> new RuntimeException("Season not found"));
-    return mapToResponse(season);
-}
+    @Transactional(readOnly = true)
+    public SeasonResponse getSeasonById(UUID seasonId) {
+        Season season = seasonRepository.findById(seasonId)
+                .orElseThrow(() -> new RuntimeException("Season not found"));
+        return mapToResponse(season);
+    }
 
-@Transactional(readOnly = true)
-public List<FixtureSummary> getFixturesBySeason(UUID seasonId) {
-    return fixtureRepository.findBySeasonId(seasonId).stream()
-            .map(this::mapToFixtureSummary)
-            .collect(Collectors.toList());
-}
+    @Transactional(readOnly = true)
+    public List<FixtureSummary> getFixturesBySeason(UUID seasonId) {
+        return fixtureRepository.findBySeasonId(seasonId).stream()
+                .map(this::mapToFixtureSummary)
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public SeasonResponse createSeason(SeasonCreateRequest request) {
         UUID currentUserId = getCurrentUserId();
 
-        // Check authorization: must be super admin OR league admin for the division's league
         boolean isSuperAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
                 .stream().anyMatch(a -> a.getAuthority().equals("ROLE_super_admin"));
         if (!isSuperAdmin && !isLeagueAdminForDivision(request.getDivisionId(), currentUserId)) {
             throw new SecurityException("You are not authorized to create a season for this division");
         }
 
-        // Validate division exists
         Division division = divisionRepository.findById(request.getDivisionId())
                 .orElseThrow(() -> new RuntimeException("Division not found with ID: " + request.getDivisionId()));
 
-        // Check duplicate season for same division and year
         if (seasonRepository.existsByDivisionIdAndSeasonYear(request.getDivisionId(), request.getYear())) {
             throw new RuntimeException("Season already exists for division " + division.getDivisionName() + " in year " + request.getYear());
         }
 
-        // Create season entity
         Season season = new Season();
         season.setDivisionId(request.getDivisionId());
         season.setName(request.getName());
@@ -125,7 +121,6 @@ public List<FixtureSummary> getFixturesBySeason(UUID seasonId) {
         season.setStartDate(request.getStartDate());
         season.setEndDate(request.getEndDate());
         season.setStatus(SeasonStatus.DRAFT);
-        // Store generation type as JSON for later use
         season.setFixtureGenerationConfig("{\"type\":\"" + request.getGenerationType().name() + "\"}");
 
         Season saved = seasonRepository.save(season);
@@ -133,7 +128,18 @@ public List<FixtureSummary> getFixturesBySeason(UUID seasonId) {
         return mapToResponse(saved);
     }
 
- @Transactional
+    @Transactional
+    public FixtureSummary updateFixtureSchedule(UUID fixtureId, FixtureScheduleRequest request) {
+        Fixture fixture = fixtureRepository.findById(fixtureId)
+                .orElseThrow(() -> new RuntimeException("Fixture not found"));
+        fixture.setScheduledDate(request.getScheduledDate());
+        fixture.setScheduledTime(request.getScheduledTime());
+        fixture.setVenue(request.getVenue());
+        fixture = fixtureRepository.save(fixture);
+        return mapToFixtureSummary(fixture);
+    }
+
+    @Transactional
     public FixtureGenerationResponse generateFixtures(UUID seasonId, Long randomSeed, UUID userId) {
         Season season = seasonRepository.findById(seasonId)
                 .orElseThrow(() -> new RuntimeException("Season not found"));
@@ -142,38 +148,31 @@ public List<FixtureSummary> getFixturesBySeason(UUID seasonId) {
             throw new IllegalStateException("Cannot generate fixtures for season already in progress/completed");
         }
 
-        // Authorization: league admin or super admin
         boolean isSuperAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
                 .stream().anyMatch(a -> a.getAuthority().equals("ROLE_super_admin"));
         if (!isSuperAdmin && !isLeagueAdminForDivision(season.getDivisionId(), userId)) {
             throw new SecurityException("Only league admin can generate fixtures");
         }
 
-        // Fetch active teams for the division using existing method
         List<Team> teams = teamRepository.findByDivisionIdAndStatus(season.getDivisionId(), TeamStatus.active);
         if (teams.size() < 2) {
             throw new IllegalStateException("Need at least 2 active teams in the division to generate fixtures");
         }
 
-        // Determine number of legs from stored config
         int legs = parseLegsFromConfig(season.getFixtureGenerationConfig());
         Long effectiveSeed = randomSeed != null ? randomSeed : System.currentTimeMillis();
 
-        // Generate fixtures using round‑robin scheduler
         List<Fixture> generated = scheduler.generateFixtures(seasonId, teams, legs, effectiveSeed);
 
-        // Replace any existing fixtures for this season
         fixtureRepository.deleteBySeasonId(seasonId);
         List<Fixture> saved = fixtureRepository.saveAll(generated);
 
-        // Update season status and config
         season.setStatus(SeasonStatus.FIXTURES_GENERATED);
         season.setFixtureGenerationConfig(updateConfigWithSeed(season.getFixtureGenerationConfig(), effectiveSeed));
         seasonRepository.save(season);
 
-        // Build response
         List<FixtureSummary> summaries = saved.stream()
-                .map(f -> new FixtureSummary(f.getMatchWeek(), f.getHomeTeamId(), f.getAwayTeamId()))
+                .map(this::mapToFixtureSummary)   // now uses the corrected mapping
                 .collect(Collectors.toList());
 
         logger.info("Generated {} fixtures for season {}", saved.size(), seasonId);
@@ -185,26 +184,37 @@ public List<FixtureSummary> getFixturesBySeason(UUID seasonId) {
                 .orElseThrow(() -> new RuntimeException("Division not found"));
         return leagueAdminRepository.existsByUserIdAndLeagueId(userId, division.getLeagueId());
     }
-private int parseLegsFromConfig(String configJson) {
-    if (configJson != null && configJson.contains("ROUND_ROBIN_DOUBLE")) return 2;
-    return 1;
-}
 
-private String updateConfigWithSeed(String config, Long seed) {
-    if (config == null || config.trim().isEmpty()) return "{\"randomSeed\":" + seed + "}";
-    if (config.endsWith("}")) {
-        String base = config.substring(0, config.length() - 1);
-        if (!base.endsWith(",")) base += ",";
-        return base + "\"randomSeed\":" + seed + "}";
+    private int parseLegsFromConfig(String configJson) {
+        if (configJson != null && configJson.contains("ROUND_ROBIN_DOUBLE")) return 2;
+        return 1;
     }
-    return config;
-}
 
+    private String updateConfigWithSeed(String config, Long seed) {
+        if (config == null || config.trim().isEmpty()) return "{\"randomSeed\":" + seed + "}";
+        if (config.endsWith("}")) {
+            String base = config.substring(0, config.length() - 1);
+            if (!base.endsWith(",")) base += ",";
+            return base + "\"randomSeed\":" + seed + "}";
+        }
+        return config;
+    }
+
+    // ---------- Corrected mapping that includes fixtureId ----------
     private FixtureSummary mapToFixtureSummary(Fixture fixture) {
-        return new FixtureSummary(
-                fixture.getMatchWeek(),
-                fixture.getHomeTeamId(),
-                fixture.getAwayTeamId());
+        FixtureSummary summary = new FixtureSummary();
+        summary.setFixtureId(fixture.getFixtureId());                // <-- critical
+        summary.setSeasonId(fixture.getSeasonId());
+        summary.setMatchWeek(fixture.getMatchWeek());
+        summary.setHomeTeamId(fixture.getHomeTeamId());
+        summary.setAwayTeamId(fixture.getAwayTeamId());
+        summary.setStatus(fixture.getStatus().name());
+        summary.setScheduledDate(fixture.getScheduledDate());
+        summary.setScheduledTime(fixture.getScheduledTime());
+        summary.setHomeScore(fixture.getHomeScore());
+        summary.setAwayScore(fixture.getAwayScore());
+        summary.setVenue(fixture.getVenue());
+        return summary;
     }
 
     private SeasonResponse mapToResponse(Season season) {

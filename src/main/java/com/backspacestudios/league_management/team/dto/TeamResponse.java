@@ -14,6 +14,7 @@ public class TeamResponse {
     private UUID leagueId;
     private String teamName;
     private String teamCode;
+    private UUID divisionId;
     private String shortName;
     private Integer foundedYear;
     private String homeCity;

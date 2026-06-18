@@ -1,21 +1,28 @@
 package com.backspacestudios.league_management.team.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import com.backspacestudios.league_management.core.service.FileUploadService;
 import com.backspacestudios.league_management.league.entity.Division;
 import com.backspacestudios.league_management.league.repository.DivisionRepository;
 import com.backspacestudios.league_management.league.service.LeagueService;
 import com.backspacestudios.league_management.team.dto.TeamRequest;
 import com.backspacestudios.league_management.team.dto.TeamResponse;
 import com.backspacestudios.league_management.team.entity.Team;
+import com.backspacestudios.league_management.team.entity.TeamManager;
 import com.backspacestudios.league_management.team.enums.FinancialStatus;
+import com.backspacestudios.league_management.team.enums.ManagerStatus;
 import com.backspacestudios.league_management.team.enums.TeamStatus;
+import com.backspacestudios.league_management.team.repository.TeamManagerRepository;
 import com.backspacestudios.league_management.team.repository.TeamRepository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class TeamService {
@@ -23,11 +30,15 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final LeagueService leagueService;
     private final DivisionRepository divisionRepository;
-
-    TeamService(TeamRepository teamRepository, LeagueService leagueService, DivisionRepository divisionRepository) {
+     private final FileUploadService fileUploadService;  
+     private final TeamManagerRepository teamManagerRepository;   // NEW
+ 
+    TeamService(TeamRepository teamRepository, LeagueService leagueService, DivisionRepository divisionRepository, FileUploadService fileUploadService, TeamManagerRepository teamManagerRepository) {
         this.teamRepository = teamRepository;
         this.leagueService = leagueService;
         this.divisionRepository = divisionRepository;
+        this.fileUploadService = fileUploadService;
+        this.teamManagerRepository = teamManagerRepository;
     }
    @Transactional
 public TeamResponse createTeam(TeamRequest request) {
@@ -148,12 +159,33 @@ public TeamResponse createTeam(TeamRequest request) {
         team = teamRepository.save(team);
         return mapToResponse(team);
     }
-    @Transactional(readOnly = true)
+    public void verifyTeamManager(UUID teamId, UUID userId) {
+    TeamManager tm = teamManagerRepository.findById(userId)          // userId = PK
+            .orElseThrow(() -> new RuntimeException("You are not a team manager"));
+    if (!tm.getTeamId().equals(teamId) || tm.getStatus() != ManagerStatus.active) {
+        throw new RuntimeException("You do not manage this team");
+    }
+}
+    @Transactional
+    public TeamResponse updateTeamLogo(UUID teamId, MultipartFile file) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+        try {
+            String logoUrl = fileUploadService.saveTeamLogo(file, teamId);
+            team.setLogoUrl(logoUrl);
+            team = teamRepository.save(team);
+            return mapToResponse(team);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to upload logo", e);
+        }
+    }
+@Transactional(readOnly = true)
 public List<TeamResponse> getActiveTeamsByDivision(UUID divisionId) {
     logger.info("Fetching active teams for division: {}", divisionId);
     List<Team> teams = teamRepository.findByDivisionIdAndStatus(divisionId, TeamStatus.active);
     return teams.stream().map(this::mapToResponse).collect(Collectors.toList());
 }
+
 
      TeamResponse mapToResponse(Team team) {
         TeamResponse response = new TeamResponse();
@@ -161,6 +193,7 @@ public List<TeamResponse> getActiveTeamsByDivision(UUID divisionId) {
         response.setLeagueId(team.getLeagueId());
         response.setTeamName(team.getTeamName());
         response.setTeamCode(team.getTeamCode());
+        response.setDivisionId(team.getDivisionId());
         response.setShortName(team.getShortName());
         response.setFoundedYear(team.getFoundedYear());
         response.setHomeCity(team.getHomeCity());
