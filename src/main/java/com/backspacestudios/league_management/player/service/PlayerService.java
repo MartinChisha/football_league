@@ -1,5 +1,6 @@
 package com.backspacestudios.league_management.player.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -8,7 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.backspacestudios.league_management.core.service.FileUploadService;
 import com.backspacestudios.league_management.player.dto.PlayerRequest;
 import com.backspacestudios.league_management.player.dto.PlayerResponse;
 import com.backspacestudios.league_management.player.entity.Player;
@@ -20,6 +23,27 @@ public class PlayerService {
     private static final Logger logger = LoggerFactory.getLogger(PlayerService.class);
 
     private PlayerRepository playerRepository;
+
+    private final FileUploadService fileUploadService;
+
+public PlayerService(PlayerRepository playerRepository, FileUploadService fileUploadService) {
+    this.playerRepository = playerRepository;
+    this.fileUploadService = fileUploadService;
+}
+
+@Transactional
+public PlayerResponse updatePlayerImage(UUID playerId, MultipartFile file) {
+    Player player = playerRepository.findById(playerId)
+            .orElseThrow(() -> new RuntimeException("Player not found"));
+    try {
+        String imageUrl = fileUploadService.savePlayerImage(file, playerId);
+        player.setProfileImageUrl(imageUrl);
+        player = playerRepository.save(player);
+        return mapToResponse(player);
+    } catch (IOException e) {
+        throw new RuntimeException("Failed to upload image", e);
+    }
+}
 
     @Transactional
     public PlayerResponse createPlayer(PlayerRequest request) {

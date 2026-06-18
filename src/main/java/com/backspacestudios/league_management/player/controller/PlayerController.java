@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.backspacestudios.league_management.player.dto.PlayerRequest;
 import com.backspacestudios.league_management.player.dto.PlayerResponse;
@@ -27,6 +29,10 @@ import jakarta.validation.Valid;
 public class PlayerController {
 
     private PlayerService playerService;
+    public PlayerController(PlayerService playerService) {
+        this.playerService = playerService;
+    }
+
 
     @PostMapping
     @PreAuthorize("hasRole('team_manager')")
@@ -55,5 +61,14 @@ public class PlayerController {
     public ResponseEntity<Void> deletePlayer(@PathVariable UUID playerId) {
         playerService.deletePlayer(playerId);
         return ResponseEntity.noContent().build();
+    }
+
+     // ---------- Image upload ----------
+    @PostMapping("/{playerId}/image")
+    @PreAuthorize("hasAnyRole('team_manager','league_admin','super_admin')")
+    public ResponseEntity<PlayerResponse> uploadPlayerImage(
+            @PathVariable UUID playerId,
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(playerService.updatePlayerImage(playerId, file));
     }
 }

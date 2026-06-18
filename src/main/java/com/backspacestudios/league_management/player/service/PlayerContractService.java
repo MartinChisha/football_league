@@ -25,30 +25,51 @@ import com.backspacestudios.league_management.player.repository.PlayerRepository
 import com.backspacestudios.league_management.team.entity.Team;
 import com.backspacestudios.league_management.team.repository.TeamRepository;
 
+/**
+ * Service for managing player contracts.
+ * <p>
+ * Handles creation by team managers, approval/rejection by league admins,
+ * and retrieval of contracts by team or league.
+ */
 @Service
 public class PlayerContractService {
 
     private static final Logger logger = LoggerFactory.getLogger(PlayerContractService.class);
 
-    
-    private PlayerContractRepository contractRepository;
+    private final PlayerContractRepository contractRepository;
+    private final PlayerRepository playerRepository;
+    private final TeamRepository teamRepository;
+    private final UserRepository userRepository;
 
-
-    private PlayerRepository playerRepository;   // ADDED
-
-    
-    private TeamRepository teamRepository;
-
-    
-    private UserRepository userRepository;
+    /**
+     * Constructor injection – all dependencies are required.
+     * Spring will automatically wire these beans at startup.
+     */
+    public PlayerContractService(PlayerContractRepository contractRepository,
+                                 PlayerRepository playerRepository,
+                                 TeamRepository teamRepository,
+                                 UserRepository userRepository) {
+        this.contractRepository = contractRepository;
+        this.playerRepository = playerRepository;
+        this.teamRepository = teamRepository;
+        this.userRepository = userRepository;
+    }
 
     // ==================== TEAM MANAGER OPERATIONS ====================
 
+    /**
+     * Creates a contract request (draft) by a team manager.
+     *
+     * @param request the contract details (player, team, type, dates, salary, etc.)
+     * @return the created contract with HTTP 201
+     * @throws RuntimeException if player/team not found, or duplicate active/pending contract exists
+     */
     @Transactional
     public PlayerContractResponse createContractRequest(PlayerContractRequest request) {
-        logger.info("Team manager creating contract request for player {} and team {}", request.getPlayerId(), request.getTeamId());
+        logger.info("Team manager creating contract request for player {} and team {}",
+                request.getPlayerId(), request.getTeamId());
 
-        // Validate player exists (fetch entity)
+        // Validate player exists
         Player player = playerRepository.findById(request.getPlayerId())
                 .orElseThrow(() -> new RuntimeException("Player not found"));
 
@@ -56,15 +77,19 @@ public class PlayerContractService {
         Team team = teamRepository.findById(request.getTeamId())
                 .orElseThrow(() -> new RuntimeException("Team not found"));
 
-        // Check if player already has an active contract with this team
+        // Check for duplicate active/pending contract with the same team
         List<PlayerContract> existing = contractRepository.findByPlayerId(request.getPlayerId());
-        if (existing.stream().anyMatch(c -> c.getTeamId().equals(request.getTeamId()) &&
-                (c.getContractStatus() == ContractStatus.active || c.getRegistrationStatus() == RegistrationStatus.pending))) {
+        boolean duplicate = existing.stream()
+                .anyMatch(c -> c.getTeamId().equals(request.getTeamId())
+                        && (c.getContractStatus() == ContractStatus.active
+                            || c.getRegistrationStatus() == RegistrationStatus.pending));
+        if (duplicate) {
             throw new RuntimeException("Player already has an active or pending contract with this team");
         }
 
         UUID currentUserId = getCurrentUserId();
 
+        // Build new contract
         PlayerContract contract = new PlayerContract();
         contract.setPlayerId(request.getPlayerId());
         contract.setTeamId(request.getTeamId());
@@ -88,9 +113,15 @@ public class PlayerContractService {
 
     // ==================== LEAGUE ADMIN OPERATIONS ====================
 
+    /**
+     * Approves or rejects a pending contract (league admin action).
+     *
+     * @param request contains contractId and approve/reject flag
+     * @return updated contract
+     */
     @Transactional
     public PlayerContractResponse approveContract(ContractApprovalRequest request) {
-        logger.info("League admin approving contract {}", request.getContractId());
+        logger.info("League admin processing contract {}", request.getContractId());
         PlayerContract contract = contractRepository.findById(request.getContractId())
                 .orElseThrow(() -> new RuntimeException("Contract not found"));
 
@@ -119,6 +150,12 @@ public class PlayerContractService {
         return mapToResponse(contract, player, team);
     }
 
+    /**
+     * Returns all pending contracts for a given league.
+     *
+     * @param leagueId the league's UUID
+     * @return list of contracts with player/team names
+     */
     @Transactional(readOnly = true)
     public List<PlayerContractResponse> getPendingContractsByLeague(UUID leagueId) {
         List<Team> teams = teamRepository.findByLeagueId(leagueId);
@@ -127,6 +164,7 @@ public class PlayerContractService {
         contracts = contracts.stream()
                 .filter(c -> teamIds.contains(c.getTeamId()))
                 .collect(Collectors.toList());
+
         return contracts.stream()
                 .map(c -> {
                     Player player = playerRepository.findById(c.getPlayerId()).orElse(null);
@@ -138,6 +176,12 @@ public class PlayerContractService {
 
     // ==================== TEAM MANAGER VIEW ====================
 
+    /**
+     * Returns all contracts for a specific team.
+     *
+     * @param teamId the team's UUID
+     * @return list of contracts
+     */
     @Transactional(readOnly = true)
     public List<PlayerContractResponse> getContractsByTeam(UUID teamId) {
         List<PlayerContract> contracts = contractRepository.findByTeamId(teamId);
@@ -152,14 +196,21 @@ public class PlayerContractService {
 
     // ==================== HELPER METHODS ====================
 
+    /**
+     * @return the UUID of the currently authenticated user
+     */
     private UUID getCurrentUserId() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
         String email = userDetails.getUsername();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Current user not found"))
                 .getUserId();
     }
 
+    /**
+     * Maps an entity to a response DTO, enriching with player and team names.
+     */
     private PlayerContractResponse mapToResponse(PlayerContract contract, Player player, Team team) {
         PlayerContractResponse response = new PlayerContractResponse();
         response.setContractId(contract.getContractId());

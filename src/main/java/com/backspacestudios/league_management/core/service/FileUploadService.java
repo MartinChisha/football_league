@@ -22,6 +22,10 @@ public class FileUploadService {
         String fileName = "team_logo_" + teamId.toString() + "_" + System.currentTimeMillis() + ".jpg";
         return saveFile(file, TEAM_LOGO_DIR, fileName);
     }
+    public String savePlayerImage(MultipartFile file, UUID playerId) throws IOException {
+    String fileName = "player_" + playerId + "_" + System.currentTimeMillis() + ".jpg";
+    return saveFile(file, "players", fileName);
+}
 
     // Profile image sub‑folder
     private static final String PROFILE_DIR = "profiles";
