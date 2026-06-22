@@ -2,18 +2,20 @@ package com.backspacestudios.league_management.referee.controller;
 
 import com.backspacestudios.league_management.competition.dto.AssignRefereeRequest;
 import com.backspacestudios.league_management.competition.dto.FixtureRefereeResponse;
-import com.backspacestudios.league_management.competition.service.RefereeAssignmentService;
 import com.backspacestudios.league_management.core.service.UserService;
 import com.backspacestudios.league_management.referee.dto.BranchAdminInfo;
 import com.backspacestudios.league_management.referee.dto.BranchRefereeDTO;
 import com.backspacestudios.league_management.referee.dto.PendingRequestDTO;
 import com.backspacestudios.league_management.referee.service.BranchAdminDashboardService;
+import com.backspacestudios.league_management.referee.service.RefereeAssignmentService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -65,5 +67,11 @@ public ResponseEntity<Void> removeAssignment(@PathVariable UUID fixtureId, @Path
 @PreAuthorize("hasRole('referee')")
 public ResponseEntity<List<FixtureRefereeResponse>> getAssignments(@PathVariable UUID fixtureId) {
     return ResponseEntity.ok(assignmentService.getAssignmentsForFixture(fixtureId));
+}
+@GetMapping("/fixtures/{seasonId}/all-assignments")
+@PreAuthorize("hasRole('referee')")
+public ResponseEntity<Map<UUID, List<FixtureRefereeResponse>>> getAllAssignmentsForSeason(
+        @PathVariable UUID seasonId) {
+    return ResponseEntity.ok(assignmentService.getAssignmentsForSeason(seasonId));
 }
 }

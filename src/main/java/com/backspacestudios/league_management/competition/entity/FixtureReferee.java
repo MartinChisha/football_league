@@ -6,8 +6,6 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.backspacestudios.league_management.competition.enums.RefereeRole;
-
 @Entity
 @Table(name = "fixture_referees", schema = "competition")
 @Data
@@ -31,4 +29,7 @@ public class FixtureReferee {
 
     @Column(name = "assigned_by")
     private UUID assignedBy;
+
+    @Column(name = "is_notified")
+    private Boolean isNotified = false;
 }
