@@ -51,6 +51,9 @@ public class MatchReportService {
         MatchReport report = reportRepository.findByFixtureId(request.getFixtureId())
                 .orElseThrow(() -> new RuntimeException("Report not initialised"));
         updateFields(report, request);
+        if (request.getEvents() != null) {
+            syncEvents(report, request.getEvents());
+        }
         report.setUpdatedBy(userId);
         report.setUpdatedAt(LocalDateTime.now());
         report.setReportStatus(request.getReportStatus() != null ? request.getReportStatus() : "draft");
@@ -129,6 +132,14 @@ public class MatchReportService {
         report.setMatchEndTime(req.getMatchEndTime());
         report.setAttendance(req.getAttendance());
         report.setWeatherConditions(req.getWeatherConditions());
+        report.setGroundConditions(req.getGroundConditions());
+        report.setSecurityPresent(req.getSecurityPresent());
+        report.setMedicalPresent(req.getMedicalPresent());
+        report.setPitchQuality(req.getPitchQuality());
+        report.setGoalCondition(req.getGoalCondition());
+        report.setLiningQuality(req.getLiningQuality());
+        report.setHomeTeamAttitude(req.getHomeTeamAttitude());
+        report.setAwayTeamAttitude(req.getAwayTeamAttitude());
         report.setHomePossession(req.getHomePossession());
         report.setAwayPossession(req.getAwayPossession());
         report.setHomeShots(req.getHomeShots());
@@ -143,9 +154,26 @@ public class MatchReportService {
         report.setAwayOffsides(req.getAwayOffsides());
     }
 
+    private void syncEvents(MatchReport report, List<MatchEventDto> eventDtos) {
+        report.getEvents().clear();
+        for (MatchEventDto dto : eventDtos) {
+            MatchEvent event = new MatchEvent();
+            event.setReport(report);
+            event.setEventType(dto.getEventType());
+            event.setMinute(dto.getMinute());
+            event.setPlayerId(dto.getPlayerId());
+            event.setSecondaryPlayerId(dto.getSecondaryPlayerId());
+            event.setTeamId(dto.getTeamId());
+            event.setDescription(dto.getDescription());
+            event.setAdditionalData(dto.getAdditionalData());
+            report.getEvents().add(event);
+        }
+    }
+
     private MatchReportResponse mapToResponse(MatchReport r) {
         List<MatchEventDto> eventDtos = r.getEvents().stream().map(e -> {
             MatchEventDto dto = new MatchEventDto();
+            dto.setEventId(e.getEventId());
             dto.setEventType(e.getEventType());
             dto.setMinute(e.getMinute());
             dto.setPlayerId(e.getPlayerId());
@@ -166,6 +194,14 @@ public class MatchReportService {
                 .matchEndTime(r.getMatchEndTime())
                 .attendance(r.getAttendance())
                 .weatherConditions(r.getWeatherConditions())
+                .groundConditions(r.getGroundConditions())
+                .securityPresent(r.getSecurityPresent())
+                .medicalPresent(r.getMedicalPresent())
+                .pitchQuality(r.getPitchQuality())
+                .goalCondition(r.getGoalCondition())
+                .liningQuality(r.getLiningQuality())
+                .homeTeamAttitude(r.getHomeTeamAttitude())
+                .awayTeamAttitude(r.getAwayTeamAttitude())
                 .homePossession(r.getHomePossession())
                 .awayPossession(r.getAwayPossession())
                 .homeShots(r.getHomeShots())

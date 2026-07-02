@@ -391,6 +391,14 @@ CREATE TABLE IF NOT EXISTS competition.match_reports (
     match_end_time TIMESTAMP,
     attendance INT,
     weather_conditions VARCHAR(100),
+    ground_conditions TEXT,
+    security_present BOOLEAN DEFAULT FALSE,
+    medical_present BOOLEAN DEFAULT FALSE,
+    pitch_quality VARCHAR(20),
+    goal_condition VARCHAR(20),
+    lining_quality VARCHAR(20),
+    home_team_attitude VARCHAR(20),
+    away_team_attitude VARCHAR(20),
     home_possession INT,
     away_possession INT,
     home_shots INT,
@@ -506,3 +514,13 @@ CREATE TABLE IF NOT EXISTS competition.standings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(season_id, team_id)
 );
+
+-- Migration: match report condition fields (run on existing databases)
+-- ALTER TABLE competition.match_reports ADD COLUMN IF NOT EXISTS ground_conditions TEXT;
+-- ALTER TABLE competition.match_reports ADD COLUMN IF NOT EXISTS security_present BOOLEAN DEFAULT FALSE;
+-- ALTER TABLE competition.match_reports ADD COLUMN IF NOT EXISTS medical_present BOOLEAN DEFAULT FALSE;
+-- ALTER TABLE competition.match_reports ADD COLUMN IF NOT EXISTS pitch_quality VARCHAR(20);
+-- ALTER TABLE competition.match_reports ADD COLUMN IF NOT EXISTS goal_condition VARCHAR(20);
+-- ALTER TABLE competition.match_reports ADD COLUMN IF NOT EXISTS lining_quality VARCHAR(20);
+-- ALTER TABLE competition.match_reports ADD COLUMN IF NOT EXISTS home_team_attitude VARCHAR(20);
+-- ALTER TABLE competition.match_reports ADD COLUMN IF NOT EXISTS away_team_attitude VARCHAR(20);

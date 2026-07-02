@@ -1,6 +1,7 @@
 package com.backspacestudios.league_management.match.controller;
 
 import com.backspacestudios.league_management.core.service.UserService;
+import com.backspacestudios.league_management.match.dto.FixtureLineupsResponse;
 import com.backspacestudios.league_management.match.dto.LineupRequest;
 import com.backspacestudios.league_management.match.dto.LineupResponse;
 import com.backspacestudios.league_management.match.service.LineupService;
@@ -25,6 +26,11 @@ public class LineupController {
     public ResponseEntity<LineupResponse> getLineup(@RequestParam UUID fixtureId,
                                                     @RequestParam UUID teamId) {
         return ResponseEntity.ok(lineupService.getOrCreate(fixtureId, teamId));
+    }
+
+    @GetMapping("/fixture/{fixtureId}")
+    public ResponseEntity<FixtureLineupsResponse> getFixtureLineups(@PathVariable UUID fixtureId) {
+        return ResponseEntity.ok(lineupService.getFixtureLineups(fixtureId));
     }
 
     @PostMapping

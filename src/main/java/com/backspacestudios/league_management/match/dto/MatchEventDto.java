@@ -5,6 +5,7 @@ import java.util.UUID;
 
 @Data
 public class MatchEventDto {
+    private UUID eventId;
     private String eventType;
     private int minute;
     private UUID playerId;

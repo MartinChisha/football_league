@@ -24,6 +24,14 @@ public class MatchReport {
     private LocalDateTime matchEndTime;
     private Integer attendance;
     private String weatherConditions;
+    private String groundConditions;
+    private Boolean securityPresent;
+    private Boolean medicalPresent;
+    private String pitchQuality;
+    private String goalCondition;
+    private String liningQuality;
+    private String homeTeamAttitude;
+    private String awayTeamAttitude;
 
     private Integer homePossession, awayPossession;
     private Integer homeShots, awayShots;
