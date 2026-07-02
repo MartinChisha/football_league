@@ -41,6 +41,7 @@ public class PlayerController {
     }
 
     @GetMapping("/{playerId}")
+    @PreAuthorize("hasAnyRole('team_manager', 'league_admin', 'super_admin', 'referee')")
     public ResponseEntity<PlayerResponse> getPlayerById(@PathVariable UUID playerId) {
         return ResponseEntity.ok(playerService.getPlayerById(playerId));
     }
