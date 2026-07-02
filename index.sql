@@ -363,3 +363,146 @@ CREATE TABLE IF NOT EXISTS competition.fixture_referees (
 
 CREATE INDEX idx_fixture_referees_fixture ON competition.fixture_referees(fixture_id);
 CREATE INDEX idx_fixture_referees_referee ON competition.fixture_referees(referee_id);
+
+-- Lineups
+CREATE TABLE IF NOT EXISTS competition.match_lineups (
+    lineup_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    fixture_id UUID NOT NULL REFERENCES competition.fixtures(fixture_id) ON DELETE CASCADE,
+    team_id UUID NOT NULL REFERENCES team.teams(team_id) ON DELETE CASCADE,
+    submitted_by UUID NOT NULL REFERENCES core.users(user_id),
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'submitted', 'confirmed', 'locked')),
+    starting_eleven JSONB NOT NULL,
+    substitutes JSONB,
+    technical_staff JSONB,
+    version INT DEFAULT 1,
+    UNIQUE(fixture_id, team_id)
+);
+
+-- Match Reports
+CREATE TABLE IF NOT EXISTS competition.match_reports (
+    report_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    fixture_id UUID NOT NULL REFERENCES competition.fixtures(fixture_id) ON DELETE CASCADE UNIQUE,
+    referee_id UUID NOT NULL REFERENCES referee.referees(referee_id),
+    home_score INT NOT NULL DEFAULT 0,
+    away_score INT NOT NULL DEFAULT 0,
+    report_status VARCHAR(20) DEFAULT 'draft' CHECK (report_status IN ('draft', 'submitted', 'verified')),
+    match_start_time TIMESTAMP,
+    match_end_time TIMESTAMP,
+    attendance INT,
+    weather_conditions VARCHAR(100),
+    home_possession INT,
+    away_possession INT,
+    home_shots INT,
+    away_shots INT,
+    home_shots_on_target INT,
+    away_shots_on_target INT,
+    home_fouls INT,
+    away_fouls INT,
+    home_corners INT,
+    away_corners INT,
+    home_offsides INT,
+    away_offsides INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES core.users(user_id),
+    updated_by UUID REFERENCES core.users(user_id)
+);
+
+-- Match Events
+CREATE TABLE IF NOT EXISTS competition.match_events (
+    event_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_id UUID NOT NULL REFERENCES competition.match_reports(report_id) ON DELETE CASCADE,
+    event_type VARCHAR(20) NOT NULL CHECK (event_type IN ('goal', 'assist', 'yellow_card', 'red_card', 'substitution', 'penalty_goal', 'penalty_missed', 'own_goal', 'injury_time', 'other')),
+    minute INT NOT NULL,
+    player_id UUID REFERENCES player.players(player_id),
+    secondary_player_id UUID REFERENCES player.players(player_id),
+    team_id UUID NOT NULL REFERENCES team.teams(team_id),
+    description TEXT,
+    additional_data JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Player Statistics
+CREATE TABLE IF NOT EXISTS competition.player_statistics (
+    stat_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    player_id UUID NOT NULL REFERENCES player.players(player_id) ON DELETE CASCADE,
+    season_id UUID NOT NULL REFERENCES competition.seasons(season_id) ON DELETE CASCADE,
+    appearances INT DEFAULT 0,
+    starts INT DEFAULT 0,
+    minutes_played INT DEFAULT 0,
+    goals INT DEFAULT 0,
+    assists INT DEFAULT 0,
+    yellow_cards INT DEFAULT 0,
+    red_cards INT DEFAULT 0,
+    shots INT DEFAULT 0,
+    shots_on_target INT DEFAULT 0,
+    key_passes INT DEFAULT 0,
+    tackles INT DEFAULT 0,
+    interceptions INT DEFAULT 0,
+    clearances INT DEFAULT 0,
+    dribbles_successful INT DEFAULT 0,
+    fouls_committed INT DEFAULT 0,
+    fouls_drawn INT DEFAULT 0,
+    offsides INT DEFAULT 0,
+    goals_per_90 DECIMAL(5,2),
+    assists_per_90 DECIMAL(5,2),
+    pass_accuracy DECIMAL(5,2),
+    rating DECIMAL(3,1),
+    UNIQUE(player_id, season_id)
+);
+
+-- Team Statistics
+CREATE TABLE IF NOT EXISTS competition.team_statistics (
+    stat_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    team_id UUID NOT NULL REFERENCES team.teams(team_id) ON DELETE CASCADE,
+    season_id UUID NOT NULL REFERENCES competition.seasons(season_id) ON DELETE CASCADE,
+    matches_played INT DEFAULT 0,
+    wins INT DEFAULT 0,
+    draws INT DEFAULT 0,
+    losses INT DEFAULT 0,
+    goals_for INT DEFAULT 0,
+    goals_against INT DEFAULT 0,
+    goal_difference INT DEFAULT 0,
+    points INT DEFAULT 0,
+    home_wins INT DEFAULT 0,
+    home_draws INT DEFAULT 0,
+    home_losses INT DEFAULT 0,
+    away_wins INT DEFAULT 0,
+    away_draws INT DEFAULT 0,
+    away_losses INT DEFAULT 0,
+    total_shots INT DEFAULT 0,
+    total_shots_on_target INT DEFAULT 0,
+    total_corners INT DEFAULT 0,
+    total_fouls INT DEFAULT 0,
+    total_offsides INT DEFAULT 0,
+    UNIQUE(team_id, season_id)
+);
+
+-- Standings
+CREATE TABLE IF NOT EXISTS competition.standings (
+    standing_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    season_id UUID NOT NULL,
+    team_id UUID NOT NULL,
+    played INT DEFAULT 0,
+    wins INT DEFAULT 0,
+    draws INT DEFAULT 0,
+    losses INT DEFAULT 0,
+    goals_for INT DEFAULT 0,
+    goals_against INT DEFAULT 0,
+    goal_difference INT DEFAULT 0,
+    points INT DEFAULT 0,
+    wins_home INT DEFAULT 0,
+    draws_home INT DEFAULT 0,
+    losses_home INT DEFAULT 0,
+    goals_for_home INT DEFAULT 0,
+    goals_against_home INT DEFAULT 0,
+    wins_away INT DEFAULT 0,
+    draws_away INT DEFAULT 0,
+    losses_away INT DEFAULT 0,
+    goals_for_away INT DEFAULT 0,
+    goals_against_away INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(season_id, team_id)
+);
